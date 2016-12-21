@@ -38,7 +38,7 @@ def main():
 					character.move_left()
 				elif event.key == pygame.K_RIGHT:
 					character.move_right()
-				elif event.key == pygame.K_UP:
+				elif event.key == pygame.K_UP or event.key == pygame.K_SPACE:
 					character.jump()
 			# on key release
 			if event.type == pygame.KEYUP:
