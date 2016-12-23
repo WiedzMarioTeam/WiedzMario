@@ -1,5 +1,5 @@
 # use pygame
-import pygame, player, envsurface, platformset1, globvar 
+import pygame, player, envsurface, platformset1, globvar, baseEnemy, LevelEnemySet1
  
 def main():
 	# initialize pygame
@@ -18,8 +18,13 @@ def main():
 	level = platformset1.PlatformSet1(character)
 	character.level = level
  	
+	enemiesSet = LevelEnemySet1.LevelEnemySet1(character, level)
+	
  	sprites = pygame.sprite.Group()
  	sprites.add(character)
+	
+	for enemy in enemiesSet.enemies:
+		sprites.add(enemy)
  
 	exit_clicked = False
  
@@ -27,6 +32,12 @@ def main():
 	
 	# the event loop
 	while not exit_clicked:
+	
+		#przetwarzamy ruchy przeciwnikow
+		for enemy in enemiesSet.enemies:
+			enemy.moveEnemy()
+			enemy.update()
+	
 		# process game events
 		for event in pygame.event.get():
             
