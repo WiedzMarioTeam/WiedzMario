@@ -43,12 +43,14 @@ class Player(pygame.sprite.Sprite):
 		# check for collisions (x axis)
 		collisions = pygame.sprite.spritecollide(self, self.level.platforms, False)
 		for col in collisions:
-			# make sure that there are no overlapping pixels
-			if self.change_x < 0:
-				self.rect.left = col.rect.right
-			else:
-				self.rect.right = col.rect.left
-		
+			# Kolizje uwzgledniamy tylko jesli nie lecimy do gory
+			if self.change_y >= 0:
+				# make sure that there are no overlapping pixels
+				if self.change_x < 0:
+					self.rect.left = col.rect.right
+				else:
+					self.rect.right = col.rect.left
+			
 		# move player vertically
 		self.rect.y += self.change_y
 	 
@@ -56,13 +58,12 @@ class Player(pygame.sprite.Sprite):
 		collisions = pygame.sprite.spritecollide(self, self.level.platforms, False)
 		for col in collisions:
 			# make sure that there are no overlapping pixels
-			if self.change_y < 0:
-				self.rect.top = col.rect.bottom
-			elif self.change_y > 0:
-				self.rect.bottom = col.rect.top
-				
-			# reset vertical movement indicator
-			self.change_y = 0	
+			#if self.change_y < 0:
+			#	self.rect.top = col.rect.bottom
+			if self.change_y > 0:
+				self.rect.bottom = col.rect.top				
+				# reset vertical movement indicator only if we found conflict while moving down
+				self.change_y = 0	
     
 	# compute gravity
 	def update_gravity(self):
