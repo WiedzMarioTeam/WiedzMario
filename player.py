@@ -30,6 +30,7 @@ class Player(pygame.sprite.Sprite):
 		
 		#ilosc punktow 
 		self.score = 0
+		self.stars = 0
 		
     # update next movement depending on user's actions    
 	def go_left(self):
@@ -50,7 +51,7 @@ class Player(pygame.sprite.Sprite):
 		self.rect.x += self.change_x			
 		
 		# check for collisions (x axis)
-		collisions = pygame.sprite.spritecollide(self, self.level.platforms, False)
+		collisions = pygame.sprite.spritecollide(self, self.level.platformsSet.platforms, False)
 		for col in collisions:
 			# Kolizje uwzgledniamy tylko jesli nie lecimy do gory
 			if self.change_y >= 0:
@@ -64,7 +65,7 @@ class Player(pygame.sprite.Sprite):
 		self.rect.y += self.change_y
 		
 		# check for collisions (y axis)
-		collisions = pygame.sprite.spritecollide(self, self.level.platforms, False)
+		collisions = pygame.sprite.spritecollide(self, self.level.platformsSet.platforms, False)
 		for col in collisions:
 			# make sure that there are no overlapping pixels
 			#if self.change_y < 0:
@@ -90,7 +91,7 @@ class Player(pygame.sprite.Sprite):
 	def jump(self):
         # check if the player is standing on a platform
 		self.rect.y += 1
-		platform_hit_list = pygame.sprite.spritecollide(self, self.level.platforms, False)
+		platform_hit_list = pygame.sprite.spritecollide(self, self.level.platformsSet.platforms, False)
 		self.rect.y -= 1
  
         # if so, jump
@@ -107,14 +108,20 @@ class Player(pygame.sprite.Sprite):
 	def stop(self):
 		self.change_x = 0
 
-	def checkCollisionsWithEnemies(self, sprites):
-		for enemy in self.level.enemies:
+	def checkCollisionsWithEnemies(self):
+		for enemy in self.level.enemiesSet.enemies:
 			if self.rect.colliderect(enemy.rect):
 				if self.lastBottomPossition <= enemy.rect.top + enemy.speed_y:
-					self.level.enemies.remove(enemy)
-					sprites.remove(enemy)
+					self.level.enemiesSet.enemies.remove(enemy)
 					self.score = self.score + enemy.pointsForKill
 				else:
 					self.lives -= 1
 					self.rect.x = globvar.GROUND_LEVEL
 					self.rect.y = globvar.SCREEN_HEIGHT - globvar.GROUND_LEVEL - globvar.PLAYER_SIZE
+					
+	def checkCollisionsWithStars(self):	
+		for star in self.level.starsSet.stars:
+			if self.rect.colliderect(star.rect):
+				self.score += globvar.POINTS_PER_STAR
+				self.level.starsSet.stars.remove(star)
+				

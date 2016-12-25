@@ -30,7 +30,7 @@ class BaseEnemy(pygame.sprite.Sprite):
 		self.min_y = min_y
 		self.max_y = max_y
 		
-		# player relative position
+		# Poziom w ktorym wystepuje przeciwnik
 		self.level = level
 		
 		#punkty za zabicie wroga
@@ -49,7 +49,7 @@ class BaseEnemy(pygame.sprite.Sprite):
 			
 		# check if the Enemy is standing on a platform
 		self.rect.y += 1
-		platform_hit_list = pygame.sprite.spritecollide(self, self.level.platforms, False)
+		platform_hit_list = pygame.sprite.spritecollide(self, self.level.platformsSet.platforms, False)
 		self.rect.y -= 1
  
         # if so, jump
@@ -65,7 +65,7 @@ class BaseEnemy(pygame.sprite.Sprite):
 		self.rect.x += self.change_x
 		
 		# check for collisions (x axis)
-		collisions = pygame.sprite.spritecollide(self, self.level.platforms, False)
+		collisions = pygame.sprite.spritecollide(self, self.level.platformsSet.platforms, False)
 		for col in collisions:
 			# Kolizje uwzgledniamy tylko jesli nie lecimy do gory
 			if self.change_y >= 0:
@@ -82,7 +82,7 @@ class BaseEnemy(pygame.sprite.Sprite):
 		self.rect.y += self.change_y
 	 
 		# check for collisions (y axis)
-		collisions = pygame.sprite.spritecollide(self, self.level.platforms, False)
+		collisions = pygame.sprite.spritecollide(self, self.level.platformsSet.platforms, False)
 		for col in collisions:
 			# make sure that there are no overlapping pixels
 			#if self.change_y < 0:

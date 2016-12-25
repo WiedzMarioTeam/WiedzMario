@@ -1,5 +1,5 @@
 # use pygame
-import pygame, player, envsurface, platformset1, globvar, baseEnemy, LevelEnemySet1
+import pygame, player, envsurface, platformset1, globvar, baseEnemy, LevelEnemySet1, starsSet1, Level
  
 def main():
 	# initialize pygame
@@ -13,29 +13,28 @@ def main():
 
     # create the character
 	character = player.Player(globvar.GROUND_LEVEL, globvar.SCREEN_HEIGHT - globvar.GROUND_LEVEL - globvar.PLAYER_SIZE, globvar.PLAYER_SIZE, globvar.PLAYER_FILL)
- 
-	# establish a link between player and level
-	level = platformset1.PlatformSet1(character)
-	character.level = level
- 	
-	enemiesSet = LevelEnemySet1.LevelEnemySet1(character, level)
-	level.enemies = enemiesSet.enemies
+	
+	# tworzymy obiekty dla pierwszego poziomu
+	level_1 = Level.Level()
+	level_1.platformsSet = platformset1.PlatformSet1(character)
+	level_1.starsSet = starsSet1.StarsSet1(character)	
+	level_1.enemiesSet = LevelEnemySet1.LevelEnemySet1(character, level_1)
+	# laczymy bohatera z pierwszym poziomem
+	character.level = level_1
 	
  	sprites = pygame.sprite.Group()
  	sprites.add(character)
 	
-	for enemy in enemiesSet.enemies:
-		sprites.add(enemy)
- 
 	exit_clicked = False
  
 	clock = pygame.time.Clock()
+	currentLevel = level_1
 	
 	# the event loop
 	while not exit_clicked:
 	
 		#przetwarzamy ruchy przeciwnikow
-		for enemy in enemiesSet.enemies:
+		for enemy in currentLevel.enemiesSet.enemies:
 			enemy.moveEnemy()
 	
 		# process game events
@@ -62,9 +61,10 @@ def main():
  
 		# update the scene
 		sprites.update()
-		level.update()
+		currentLevel.update()
  
-		character.checkCollisionsWithEnemies(sprites)
+		character.checkCollisionsWithEnemies()
+		character.checkCollisionsWithStars()
         # don't let the player leave the world
 		if character.rect.right > globvar.SCREEN_WIDTH:
 			character.rect.right = globvar.SCREEN_WIDTH
@@ -73,7 +73,7 @@ def main():
 			character.rect.left = 0
  
         # draw the scene
-		level.draw(screen)
+		currentLevel.draw(screen)
 		sprites.draw(screen)
  
 		# display the defined number of FPS

@@ -25,9 +25,6 @@ class PlatformSet1(object):
         self.platforms.update()
  
     def draw(self, screen):
-        # fill the background
-        screen.fill(globvar.BACKGROUND_FILL)
- 
         # draw the sprites
         self.platforms.draw(screen)
  
