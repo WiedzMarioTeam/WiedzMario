@@ -15,7 +15,11 @@ class BaseEnemy(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect()
 		self.rect.x = pos_x
 		self.rect.y = pos_y
-	 
+		
+		#wspolrzedne pierwotne wroga
+		self.originalX = pos_x
+		self.originalY = pos_y
+		
 		# predkosc poczatkowa
 		self.change_x = speed_x
 		self.change_y = speed_y
@@ -91,7 +95,7 @@ class BaseEnemy(pygame.sprite.Sprite):
 				self.rect.bottom = col.rect.top				
 				# reset vertical movement indicator only if we found conflict while moving down
 				self.change_y = 0	
-    
+ 
 	# compute gravity
 	def update_gravity(self):
 		# we don't want the player to be stuck under a platform
@@ -105,3 +109,6 @@ class BaseEnemy(pygame.sprite.Sprite):
 			self.change_y = 0
 			self.rect.y = globvar.SCREEN_HEIGHT - self.rect.height - globvar.GROUND_LEVEL
  
+	def resetPosition(self):
+		self.rect.x = self.originalX
+		self.rect.y = self.originalY

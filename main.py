@@ -1,5 +1,5 @@
 # use pygame
-import pygame, player, envsurface, platformset1, globvar, baseEnemy, LevelEnemySet1, starsSet1, Level
+import pygame, player, envsurface, platformset1, globvar, baseEnemy, LevelEnemySet1, starsSet1, Level, time
  
 def main():
 	# initialize pygame
@@ -10,6 +10,10 @@ def main():
  
 	# set the window title
 	pygame.display.set_caption('Mario')
+	
+	#czcionka do pol tekstowych
+	font = pygame.font.SysFont("comicsansms",40)
+	
 
     # create the character
 	character = player.Player(globvar.GROUND_LEVEL, globvar.SCREEN_HEIGHT - globvar.GROUND_LEVEL - globvar.PLAYER_SIZE, globvar.PLAYER_SIZE, globvar.PLAYER_FILL)
@@ -29,6 +33,7 @@ def main():
  
 	clock = pygame.time.Clock()
 	currentLevel = level_1
+	currentLevel.timeStart = time.time()
 	
 	# the event loop
 	while not exit_clicked:
@@ -63,7 +68,22 @@ def main():
 		sprites.update()
 		currentLevel.update()
  
-		character.checkCollisionsWithEnemies()
+		#Jesli zostalo 0 zyc, to funkcja informuje o koncu gry		
+		isGammeOver = character.checkCollisionsWithEnemies()
+		if isGammeOver:
+			currentLevel.draw(screen)
+			sprites.draw(screen)
+			endText=font.render("GAME OVER", 1,(255,255,0))
+			text_width, text_height = font.size("GAME OVER")
+			screen.blit(endText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT - text_height)/2))
+			text_width, text_height = font.size("Score:"+str(character.score))
+			scoreText=font.render("Score:"+str(character.score), 1,(255,255,0))
+			screen.blit(scoreText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT + text_height + 20)/2))		
+			pygame.display.flip()
+			pygame.time.delay(3000)
+			pygame.quit()
+
+			
 		character.checkCollisionsWithStars()
         # don't let the player leave the world
 		if character.rect.right > globvar.SCREEN_WIDTH:
@@ -78,6 +98,14 @@ def main():
  
 		# display the defined number of FPS
 		clock.tick(globvar.TICK)
+		
+		#inicjalizacja pol tekstowych z zyciami i suma punktow
+		livesText=font.render("Lives:"+str(character.lives), 1,(255,255,0))
+		screen.blit(livesText, (globvar.SCREEN_WIDTH - 250, 10))
+		scoreText=font.render("Score:"+str(character.score), 1,(255,255,0))
+		screen.blit(scoreText, (globvar.SCREEN_WIDTH - 250, 70))
+		timeText=font.render("Time:"+str(round(time.time() - currentLevel.timeStart, 2)), 1,(255,255,0))
+		screen.blit(timeText, (10, 10))
  
         # update the screen
 		pygame.display.flip()

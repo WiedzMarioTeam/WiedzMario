@@ -20,3 +20,8 @@ class LevelEnemySet1(object):
 	
 	def draw(self, screen):
 		self.enemies.draw(screen)
+		
+	#Powrot wrogow na pierwotne miejsce
+	def resetPositions(self):
+		for enemy in self.enemies:
+			enemy.resetPosition()

@@ -6,6 +6,7 @@ class Level(object):
 		self.platformsSet = None
 		self.starsSet = None
 		self.enemiesSet = None
+		self.timeStart = None
 	
 	def update(self):
 		self.starsSet.update()

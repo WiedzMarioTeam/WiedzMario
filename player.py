@@ -116,8 +116,12 @@ class Player(pygame.sprite.Sprite):
 					self.score = self.score + enemy.pointsForKill
 				else:
 					self.lives -= 1
+					if self.lives == 0:
+						return True
 					self.rect.x = globvar.GROUND_LEVEL
 					self.rect.y = globvar.SCREEN_HEIGHT - globvar.GROUND_LEVEL - globvar.PLAYER_SIZE
+					self.level.enemiesSet.resetPositions()
+		return False
 					
 	def checkCollisionsWithStars(self):	
 		for star in self.level.starsSet.stars:
