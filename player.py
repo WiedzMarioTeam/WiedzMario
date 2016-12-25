@@ -23,6 +23,14 @@ class Player(pygame.sprite.Sprite):
 		# player relative position
 		self.level = None
 		
+		#ilosc zyc
+		self.lives = globvar.START_LIVES_AMOUNT
+		
+		self.lastBottomPossition = pos_y
+		
+		#ilosc punktow 
+		self.score = 0
+		
     # update next movement depending on user's actions    
 	def go_left(self):
 		self.change_x = -globvar.STRIDE
@@ -35,10 +43,11 @@ class Player(pygame.sprite.Sprite):
 
 	# update player position depending on user's action and collision detection
 	def update(self):
+		self.lastBottomPossition = self.rect.bottom
 		# update gravity
 		self.update_gravity()
 		# move player horizontally
-		self.rect.x += self.change_x
+		self.rect.x += self.change_x			
 		
 		# check for collisions (x axis)
 		collisions = pygame.sprite.spritecollide(self, self.level.platforms, False)
@@ -51,9 +60,9 @@ class Player(pygame.sprite.Sprite):
 				else:
 					self.rect.right = col.rect.left
 			
-		# move player vertically
+		# move player vertically		
 		self.rect.y += self.change_y
-	 
+		
 		# check for collisions (y axis)
 		collisions = pygame.sprite.spritecollide(self, self.level.platforms, False)
 		for col in collisions:
@@ -63,8 +72,8 @@ class Player(pygame.sprite.Sprite):
 			if self.change_y > 0:
 				self.rect.bottom = col.rect.top				
 				# reset vertical movement indicator only if we found conflict while moving down
-				self.change_y = 0	
-    
+				self.change_y = 0
+				
 	# compute gravity
 	def update_gravity(self):
 		# we don't want the player to be stuck under a platform
@@ -97,3 +106,15 @@ class Player(pygame.sprite.Sprite):
  
 	def stop(self):
 		self.change_x = 0
+
+	def checkCollisionsWithEnemies(self, sprites):
+		for enemy in self.level.enemies:
+			if self.rect.colliderect(enemy.rect):
+				if self.lastBottomPossition <= enemy.rect.top + enemy.speed_y:
+					self.level.enemies.remove(enemy)
+					sprites.remove(enemy)
+					self.score = self.score + enemy.pointsForKill
+				else:
+					self.lives -= 1
+					self.rect.x = globvar.GROUND_LEVEL
+					self.rect.y = globvar.SCREEN_HEIGHT - globvar.GROUND_LEVEL - globvar.PLAYER_SIZE

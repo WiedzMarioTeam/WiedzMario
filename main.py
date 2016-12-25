@@ -19,6 +19,7 @@ def main():
 	character.level = level
  	
 	enemiesSet = LevelEnemySet1.LevelEnemySet1(character, level)
+	level.enemies = enemiesSet.enemies
 	
  	sprites = pygame.sprite.Group()
  	sprites.add(character)
@@ -36,7 +37,6 @@ def main():
 		#przetwarzamy ruchy przeciwnikow
 		for enemy in enemiesSet.enemies:
 			enemy.moveEnemy()
-			enemy.update()
 	
 		# process game events
 		for event in pygame.event.get():
@@ -57,11 +57,14 @@ def main():
 					character.stop()
 				elif event.key == pygame.K_RIGHT and character.change_x > 0:
 					character.stop()
+					
+			
  
 		# update the scene
 		sprites.update()
 		level.update()
  
+		character.checkCollisionsWithEnemies(sprites)
         # don't let the player leave the world
 		if character.rect.right > globvar.SCREEN_WIDTH:
 			character.rect.right = globvar.SCREEN_WIDTH

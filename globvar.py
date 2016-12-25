@@ -24,4 +24,7 @@ GROUND_LEVEL = 20
 
 # clock tick
 TICK = 60
+
+#ilosc poczatlowych zyc gracza
+START_LIVES_AMOUNT = 3
  
