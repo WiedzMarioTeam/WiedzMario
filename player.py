@@ -116,10 +116,9 @@ class Player(pygame.sprite.Sprite):
 					self.score = self.score + enemy.pointsForKill
 				else:
 					self.lives -= 1
+					self.resetPosition()
 					if self.lives == 0:
 						return True
-					self.rect.x = globvar.GROUND_LEVEL
-					self.rect.y = globvar.SCREEN_HEIGHT - globvar.GROUND_LEVEL - globvar.PLAYER_SIZE
 					self.level.enemiesSet.resetPositions()
 		return False
 					
@@ -129,3 +128,6 @@ class Player(pygame.sprite.Sprite):
 				self.score += globvar.POINTS_PER_STAR
 				self.level.starsSet.stars.remove(star)
 				
+	def resetPosition(self):
+		self.rect.x = globvar.GROUND_LEVEL
+		self.rect.y = globvar.SCREEN_HEIGHT - globvar.GROUND_LEVEL - globvar.PLAYER_SIZE

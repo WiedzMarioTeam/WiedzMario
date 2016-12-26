@@ -7,11 +7,13 @@ class Level(object):
 		self.starsSet = None
 		self.enemiesSet = None
 		self.timeStart = None
+		self.levelExit = None
 	
 	def update(self):
 		self.starsSet.update()
 		self.platformsSet.update()
 		self.enemiesSet.update()
+		self.levelExit.update()
 		
 	def draw(self, screen):
         # fill the background
@@ -20,3 +22,4 @@ class Level(object):
 		self.starsSet.draw(screen)
 		self.platformsSet.draw(screen)
 		self.enemiesSet.draw(screen)
+		self.levelExit.draw(screen)

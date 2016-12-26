@@ -1,28 +1,36 @@
 # use pygame
-import pygame, player, envsurface, platformset1, globvar, baseEnemy, LevelEnemySet1, starsSet1, Level, time
+import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, utilsSet
  
 def main():
 	# initialize pygame
 	pygame.init()
- 
+
 	# create the game screen
 	screen = pygame.display.set_mode([globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT])
  
-	# set the window title
-	pygame.display.set_caption('Mario')
-	
-	#czcionka do pol tekstowych
+ 	#czcionka do pol tekstowych
 	font = pygame.font.SysFont("comicsansms",40)
-	
-
+	# set the window title
+	pygame.display.set_caption('Mario')	
+	utils = utilsSet.Utils(screen)
     # create the character
 	character = player.Player(globvar.GROUND_LEVEL, globvar.SCREEN_HEIGHT - globvar.GROUND_LEVEL - globvar.PLAYER_SIZE, globvar.PLAYER_SIZE, globvar.PLAYER_FILL)
 	
-	# tworzymy obiekty dla pierwszego poziomu
+	# tworzymy obiekty dla kolejnych poziomow
 	level_1 = Level.Level()
-	level_1.platformsSet = platformset1.PlatformSet1(character)
-	level_1.starsSet = starsSet1.StarsSet1(character)	
-	level_1.enemiesSet = LevelEnemySet1.LevelEnemySet1(character, level_1)
+	level_1.platformsSet = platformsSets.PlatformSet1(character)
+	level_1.starsSet = starsSets.StarsSet1(character)	
+	level_1.enemiesSet = enemiesSets.EnemiesSet1(character, level_1)
+	level_1.levelExit = levelExit.LevelExit(950,598)
+	
+	level_2 = Level.Level()
+	level_2.platformsSet = platformsSets.PlatformSet2(character)
+	level_2.starsSet = starsSets.StarsSet2(character)	
+	level_2.enemiesSet = enemiesSets.EnemiesSet2(character, level_2)
+	level_2.levelExit = levelExit.LevelExit(950,598)
+	
+	levels = [level_1, level_2]
+	
 	# laczymy bohatera z pierwszym poziomem
 	character.level = level_1
 	
@@ -32,6 +40,8 @@ def main():
 	exit_clicked = False
  
 	clock = pygame.time.Clock()
+	currentLevelNumber = 1
+	utils.printLevelNumber(currentLevelNumber)
 	currentLevel = level_1
 	currentLevel.timeStart = time.time()
 	
@@ -73,9 +83,7 @@ def main():
 		if isGammeOver:
 			currentLevel.draw(screen)
 			sprites.draw(screen)
-			endText=font.render("GAME OVER", 1,(255,255,0))
-			text_width, text_height = font.size("GAME OVER")
-			screen.blit(endText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT - text_height)/2))
+			utils.printTextCenter("GAME OVER")
 			text_width, text_height = font.size("Score:"+str(character.score))
 			scoreText=font.render("Score:"+str(character.score), 1,(255,255,0))
 			screen.blit(scoreText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT + text_height + 20)/2))		
@@ -83,8 +91,28 @@ def main():
 			pygame.time.delay(3000)
 			pygame.quit()
 
-			
+		# Sprawdzamy, czy zebrano jakas gwiazdke		
 		character.checkCollisionsWithStars()
+		
+		#Sprawdzamy, czy gracz dotarl do konca poziomu
+		for ex in currentLevel.levelExit.exit:
+			if character.rect.colliderect(ex.rect):
+				if currentLevelNumber == len(levels):
+					utils.printTextCenter("YOU WON THE GAME")
+					text_width, text_height = font.size("Score:"+str(character.score))
+					scoreText=font.render("Score:"+str(character.score), 1,(255,255,0))
+					screen.blit(scoreText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT + text_height + 20)/2))	
+					pygame.display.flip()
+					pygame.time.delay(3000)
+					pygame.quit()
+				else:
+					currentLevel = levels[currentLevelNumber]
+					currentLevelNumber += 1
+					character.level = currentLevel
+					character.resetPosition()
+					utils.printLevelNumber(currentLevelNumber)
+					currentLevel.timeStart = time.time()
+		
         # don't let the player leave the world
 		if character.rect.right > globvar.SCREEN_WIDTH:
 			character.rect.right = globvar.SCREEN_WIDTH
