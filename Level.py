@@ -2,12 +2,16 @@ import globvar
 
 class Level(object):
 	
-	def __init__(self):
+	def __init__(self, width, height, player_x, player_y):
 		self.platformsSet = None
 		self.starsSet = None
 		self.enemiesSet = None
 		self.timeStart = None
 		self.levelExit = None
+		self.width = width
+		self.height = height
+		self.start_x = player_x
+		self.start_y = player_y
 	
 	def update(self):
 		self.starsSet.update()

@@ -1,29 +1,30 @@
 # use pygame
-import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, utilsSet
+import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, utilsSet, cameraModule
  
 def main():
 	# initialize pygame
 	pygame.init()
 
 	# create the game screen
-	screen = pygame.display.set_mode([globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT])
- 
+	#screen = pygame.display.set_mode([globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT])
+	screen = pygame.display.set_mode((globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT), 0, 32)
+	
  	#czcionka do pol tekstowych
 	font = pygame.font.SysFont("comicsansms",40)
 	# set the window title
 	pygame.display.set_caption('Mario')	
 	utils = utilsSet.Utils(screen)
     # create the character
-	character = player.Player(globvar.GROUND_LEVEL, globvar.SCREEN_HEIGHT - globvar.GROUND_LEVEL - globvar.PLAYER_SIZE, globvar.PLAYER_SIZE, globvar.PLAYER_FILL)
+	character = player.Player(100, 1300, globvar.PLAYER_SIZE, globvar.PLAYER_FILL)
 	
 	# tworzymy obiekty dla kolejnych poziomow
-	level_1 = Level.Level()
+	level_1 = Level.Level(2000, 1600, 100, 1300)
 	level_1.platformsSet = platformsSets.PlatformSet1(character)
 	level_1.starsSet = starsSets.StarsSet1(character)	
 	level_1.enemiesSet = enemiesSets.EnemiesSet1(character, level_1)
 	level_1.levelExit = levelExit.LevelExit(950,598)
 	
-	level_2 = Level.Level()
+	level_2 = Level.Level(3000, 1000, 100, 650)
 	level_2.platformsSet = platformsSets.PlatformSet2(character)
 	level_2.starsSet = starsSets.StarsSet2(character)	
 	level_2.enemiesSet = enemiesSets.EnemiesSet2(character, level_2)
@@ -41,8 +42,9 @@ def main():
  
 	clock = pygame.time.Clock()
 	currentLevelNumber = 1
-	utils.printLevelNumber(currentLevelNumber)
+	#utils.printLevelNumber(currentLevelNumber)
 	currentLevel = level_1
+	camera = cameraModule.Camera(cameraModule.complex_camera, currentLevel.width, currentLevel.height)
 	currentLevel.timeStart = time.time()
 	
 	# the event loop
@@ -70,26 +72,16 @@ def main():
 				if event.key == pygame.K_LEFT and character.change_x < 0:
 					character.stop()
 				elif event.key == pygame.K_RIGHT and character.change_x > 0:
-					character.stop()
-					
-			
+					character.stop()	
  
 		# update the scene
 		sprites.update()
 		currentLevel.update()
+		
+		#Aktualizujemy kamere
+		camera.update(character)
  
-		#Jesli zostalo 0 zyc, to funkcja informuje o koncu gry		
-		isGammeOver = character.checkCollisionsWithEnemies()
-		if isGammeOver:
-			currentLevel.draw(screen)
-			sprites.draw(screen)
-			utils.printTextCenter("GAME OVER")
-			text_width, text_height = font.size("Score:"+str(character.score))
-			scoreText=font.render("Score:"+str(character.score), 1,(255,255,0))
-			screen.blit(scoreText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT + text_height + 20)/2))		
-			pygame.display.flip()
-			pygame.time.delay(3000)
-			pygame.quit()
+		character.checkCollisionsWithEnemies()
 
 		# Sprawdzamy, czy zebrano jakas gwiazdke		
 		character.checkCollisionsWithStars()
@@ -102,7 +94,7 @@ def main():
 					text_width, text_height = font.size("Score:"+str(character.score))
 					scoreText=font.render("Score:"+str(character.score), 1,(255,255,0))
 					screen.blit(scoreText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT + text_height + 20)/2))	
-					pygame.display.flip()
+					pygame.display.update()
 					pygame.time.delay(3000)
 					pygame.quit()
 				else:
@@ -110,19 +102,40 @@ def main():
 					currentLevelNumber += 1
 					character.level = currentLevel
 					character.resetPosition()
+					camera = cameraModule.Camera(cameraModule.complex_camera, currentLevel.width, currentLevel.height)
 					utils.printLevelNumber(currentLevelNumber)
 					currentLevel.timeStart = time.time()
 		
         # don't let the player leave the world
-		if character.rect.right > globvar.SCREEN_WIDTH:
-			character.rect.right = globvar.SCREEN_WIDTH
+		if character.rect.right > currentLevel.width:
+			character.rect.right = currentLevel.width
  
 		if character.rect.left < 0:
 			character.rect.left = 0
- 
+		if character.rect.bottom > currentLevel.height:
+			character.lifeLost()
+			
+		#Jesli zostalo 0 zyc, to funkcja informuje o koncu gry			
+		if character.lives == 0:
+			utils.gameOver(currentLevel, screen, character)
+			
+		screen.fill(globvar.BACKGROUND_FILL)
+
+		
+		for e in currentLevel.platformsSet.platforms:
+			screen.blit(e.image, camera.apply(e))
+		for e in currentLevel.starsSet.stars:
+			screen.blit(e.image, camera.apply(e))
+		for e in currentLevel.enemiesSet.enemies:
+			screen.blit(e.image, camera.apply(e))
+		for e in currentLevel.levelExit.exit:
+			screen.blit(e.image, camera.apply(e))
+
+		screen.blit(character.image, camera.apply(character))
+		
         # draw the scene
-		currentLevel.draw(screen)
-		sprites.draw(screen)
+		#currentLevel.draw(screen)
+		#sprites.draw(screen)
  
 		# display the defined number of FPS
 		clock.tick(globvar.TICK)
@@ -135,8 +148,8 @@ def main():
 		timeText=font.render("Time:"+str(round(time.time() - currentLevel.timeStart, 2)), 1,(255,255,0))
 		screen.blit(timeText, (10, 10))
  
-        # update the screen
-		pygame.display.flip()
+		pygame.display.update()
+		#pygame.display.flip()
  
 	# quit game upon clicking the (X) button
 	pygame.quit()

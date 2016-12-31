@@ -16,5 +16,15 @@ class Utils(object):
 	def printLevelNumber(self, number):
 		self.screen.fill(globvar.COLOR_BLACK)
 		self.printTextCenter("LEVEL " + str(number))
-		pygame.display.flip()
+		pygame.display.update()
 		pygame.time.delay(1500)
+		
+	def gameOver(self, currentLevel, screen, character):
+		font = pygame.font.SysFont("comicsansms",40)
+		self.printTextCenter("GAME OVER")
+		text_width, text_height = font.size("Score:"+str(character.score))
+		scoreText=font.render("Score:"+str(character.score), 1,(255,255,0))
+		screen.blit(scoreText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT + text_height + 20)/2))		
+		pygame.display.update()
+		pygame.time.delay(3000)
+		pygame.quit()

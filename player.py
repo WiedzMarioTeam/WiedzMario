@@ -27,6 +27,7 @@ class Player(pygame.sprite.Sprite):
 		self.lives = globvar.START_LIVES_AMOUNT
 		
 		self.lastBottomPossition = pos_y
+		self.beforeGravity = pos_y
 		
 		#ilosc punktow 
 		self.score = 0
@@ -54,11 +55,11 @@ class Player(pygame.sprite.Sprite):
 		collisions = pygame.sprite.spritecollide(self, self.level.platformsSet.platforms, False)
 		for col in collisions:
 			# Kolizje uwzgledniamy tylko jesli nie lecimy do gory
-			if self.change_y >= 0:
+			#if self.change_y >= 0:
 				# make sure that there are no overlapping pixels
-				if self.change_x < 0:
+				if self.change_x < 0 and col.rect.right - self.rect.left  < 10:
 					self.rect.left = col.rect.right
-				else:
+				elif self.change_x > 0 and self.rect.right - col.rect.left < 10:
 					self.rect.right = col.rect.left
 			
 		# move player vertically		
@@ -70,7 +71,7 @@ class Player(pygame.sprite.Sprite):
 			# make sure that there are no overlapping pixels
 			#if self.change_y < 0:
 			#	self.rect.top = col.rect.bottom
-			if self.change_y > 0:
+			if self.change_y > 0 and self.beforeGravity <= col.rect.top:
 				self.rect.bottom = col.rect.top				
 				# reset vertical movement indicator only if we found conflict while moving down
 				self.change_y = 0
@@ -78,15 +79,11 @@ class Player(pygame.sprite.Sprite):
 	# compute gravity
 	def update_gravity(self):
 		# we don't want the player to be stuck under a platform
+		self.beforeGravity = self.rect.bottom
 		if self.change_y == 0:
 			self.change_y = 1
 		else:
 			self.change_y += 0.30
- 
-		# ground is the bottom limit 
-		if self.rect.y >= globvar.SCREEN_HEIGHT - self.rect.height - globvar.GROUND_LEVEL and self.change_y >= 0:
-			self.change_y = 0
-			self.rect.y = globvar.SCREEN_HEIGHT - self.rect.height - globvar.GROUND_LEVEL
  
 	def jump(self):
         # check if the player is standing on a platform
@@ -115,11 +112,7 @@ class Player(pygame.sprite.Sprite):
 					self.level.enemiesSet.enemies.remove(enemy)
 					self.score = self.score + enemy.pointsForKill
 				else:
-					self.lives -= 1
-					self.resetPosition()
-					if self.lives == 0:
-						return True
-					self.level.enemiesSet.resetPositions()
+					return self.lifeLost()
 		return False
 					
 	def checkCollisionsWithStars(self):	
@@ -129,5 +122,13 @@ class Player(pygame.sprite.Sprite):
 				self.level.starsSet.stars.remove(star)
 				
 	def resetPosition(self):
-		self.rect.x = globvar.GROUND_LEVEL
-		self.rect.y = globvar.SCREEN_HEIGHT - globvar.GROUND_LEVEL - globvar.PLAYER_SIZE
+		self.rect.x = self.level.start_x
+		self.rect.y = self.level.start_y
+		
+	def lifeLost(self):
+		self.lives -= 1
+		if self.lives == 0:
+			return True
+		self.level.enemiesSet.resetPositions()
+		self.resetPosition()
+		return False

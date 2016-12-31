@@ -104,10 +104,8 @@ class BaseEnemy(pygame.sprite.Sprite):
 		else:
 			self.change_y += 0.30
  
-		# ground is the bottom limit 
-		if self.rect.y >= globvar.SCREEN_HEIGHT - self.rect.height - globvar.GROUND_LEVEL and self.change_y >= 0:
-			self.change_y = 0
-			self.rect.y = globvar.SCREEN_HEIGHT - self.rect.height - globvar.GROUND_LEVEL
+		if self.rect.bottom > self.level.height:
+			self.level.enemiesSet.enemies.remove(self)
  
 	def resetPosition(self):
 		self.rect.x = self.originalX
