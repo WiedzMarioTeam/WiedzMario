@@ -1,7 +1,92 @@
-import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, utilsSet, cameraModule 
+import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, utilsSet, cameraModule, menuItem, sys
 
 class GamePlay():
-	def __init__(self, font, caption, character, clock, current_level_no):
+	def __init__(self):
+		self.menu_loop = True
+	
+	# main menu initialization
+	def initMenu(self, clock, font, font_size, font_color):
+		#create the game screen
+		self.screen = pygame.display.set_mode((globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT), 0, 32)
+		self.scr_width = self.screen.get_rect().width
+		self.scr_height = self.screen.get_rect().height
+		self.font = font
+		self.items_start = ['Start', 'Choose level', 'Settings', 'Quit']
+		# to be implemented
+		self.items_in_game = None
+		self.clock = clock
+		self.start_menu_items = []
+		# to be implemented
+		self.in_game_menu_items = []
+		self.items = []
+        
+		for index, item in enumerate(self.items_start):
+			start_menu_item = menuItem.MenuItem(item, font, font_size, font_color, 0, 0)
+ 
+            # height of text block
+			block_height = len(self.items_start) * start_menu_item.height
+			pos_x = (self.scr_width / 2) - (start_menu_item.width / 2)
+			pos_y = (self.scr_height / 2) - (block_height / 2) + ((index*2) + index * start_menu_item.height)
+            
+			start_menu_item.set_position(pos_x, pos_y)
+			self.start_menu_items.append(start_menu_item)
+		
+		self.current_item = None
+		self.items = self.start_menu_items
+        
+    
+    # handle option choice
+	def setKeySelection(self, key):
+		for item in self.items:
+			# reset all items
+			item.set_bold(False)
+			item.set_font_color(globvar.MENU_DEFAULT)
+ 
+		if self.current_item is None:
+			self.current_item = 0
+		else:	
+			if key == pygame.K_UP and self.current_item > 0:
+				self.current_item -= 1
+			elif key == pygame.K_UP and self.current_item == 0:
+				self.current_item = len(self.items) - 1
+			elif key == pygame.K_DOWN and self.current_item < len(self.items) - 1:
+				self.current_item += 1
+			elif key == pygame.K_DOWN and self.current_item == len(self.items) - 1:
+				self.current_item = 0
+ 
+		# highlight the selected item
+		self.items[self.current_item].set_bold(True)
+		self.items[self.current_item].set_font_color(globvar.MENU_ACTIVE)
+ 
+        # check if any menu button was "pressed"
+		if key == pygame.K_SPACE or key == pygame.K_RETURN:
+			text = self.items[self.current_item].text
+			if text == 'Start':
+				self.gameLoop()
+            
+    
+    # display the start menu  
+	def menuLoop(self):
+		while self.menu_loop:
+			self.clock.tick(globvar.TICK)
+            
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					mainloop = False
+				if event.type == pygame.KEYDOWN:
+					self.setKeySelection(event.key)
+
+			if self.menu_loop:
+				self.screen.fill(globvar.MENU_FILL)
+ 
+				for item in self.items:
+					self.screen.blit(item.label, item.position)
+ 
+				pygame.display.flip()
+        
+        
+	# initialization of the actual gameplay
+	def initGame(self, font, caption, character, clock, current_level_no):
 		#create the game screen
 		self.screen = pygame.display.set_mode((globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT), 0, 32)
 		# set font
@@ -16,10 +101,6 @@ class GamePlay():
 		# set current level number
 		self.currentLevelNumber = current_level_no
 		self.levels = None
-		self.exit_game = False
-		
-	
-	def initGame(self):
 		# tworzymy obiekty dla kolejnych poziomow
 		level_1 = Level.Level(2000, 1600, 100, 1300)
 		level_1.platformsSet = platformsSets.PlatformSet1(self.character)
@@ -45,9 +126,11 @@ class GamePlay():
 		self.currentLevel.timeStart = time.time()
 		
 	
+	# gameplay loop
 	def gameLoop(self):	
+		self.initGame(pygame.font.SysFont("comicsansms", 40), "Mario", player.Player(100, 1300, globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), 1)
 		# the event loop
-		while not self.exit_game:
+		while self.menu_loop:
 		
 			#przetwarzamy ruchy przeciwnikow
 			for enemy in self.currentLevel.enemiesSet.enemies:
@@ -57,7 +140,7 @@ class GamePlay():
 			for event in pygame.event.get():
 				
 				if event.type == pygame.QUIT:
-					self.exit_game = True
+					self.menu_loop = False
 				# on key press
 				if event.type == pygame.KEYDOWN:
 					if event.key == pygame.K_LEFT:
@@ -95,7 +178,7 @@ class GamePlay():
 						self.screen.blit(scoreText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT + text_height + 20)/2))	
 						pygame.display.update()
 						pygame.time.delay(3000)
-						self.exit_game = True
+						self.menu_loop = False
 					else:
 						self.currentLevel = self.levels[self.currentLevelNumber]
 						self.currentLevelNumber += 1
@@ -117,10 +200,10 @@ class GamePlay():
 			#Jesli zostalo 0 zyc, to funkcja informuje o koncu gry			
 			if self.character.lives == 0:
 				self.utils.gameOver(self.currentLevel, self.screen, self.character)
-				break
+				self.menu_loop = False
 			
 			# in case of end-game
-			if self.exit_game == True:
+			if self.menu_loop == False:
 				break
 				
 			self.screen.fill(globvar.BACKGROUND_FILL)
@@ -155,4 +238,9 @@ class GamePlay():
 			pygame.display.update()
 			#pygame.display.flip()
 				
-			
+	
+	def chooseLevel(self):
+		pass
+	
+	def settings(self):		
+		pass
