@@ -3,7 +3,7 @@ import pygame, globvar
 # class representing the player
 class Player(pygame.sprite.Sprite):
 	# constructor allowing to set positon, size and color of the player
-	def __init__(self, pos_x, pos_y, size, fill_color):
+	def __init__(self, (pos_x, pos_y), size, fill_color):
 		# call the parent constructor
 		pygame.sprite.Sprite.__init__(self) 
 			

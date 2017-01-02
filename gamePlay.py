@@ -3,6 +3,8 @@ import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSet
 class GamePlay():
 	def __init__(self):
 		self.menu_loop = True
+		self.max_levels = 2
+		self.player_positions = {'1': (100, 1300), '2': (100, 650)}
 	
 	# menu initialization
 	def initMenu(self, clock, font, font_size, font_color, menu_items, start_menu):
@@ -13,8 +15,6 @@ class GamePlay():
 		self.font = font
 		self.start_menu = start_menu
 		self.menu_items = menu_items
-		# to be implemented
-		self.items_in_game = None
 		self.clock = clock
 		self.items = []
         
@@ -24,7 +24,7 @@ class GamePlay():
             # height of text block
 			block_height = len(self.menu_items) * menu_item.height
 			pos_x = (self.scr_width / 2) - (menu_item.width / 2)
-			pos_y = (self.scr_height / 2) - (block_height / 2) + ((index*2) + index * menu_item.height)
+			pos_y = (self.scr_height / 2) - (block_height / 2) + ((index * 2) + index * menu_item.height)
             
 			menu_item.set_position(pos_x, pos_y)
 			self.items.append(menu_item)
@@ -60,13 +60,15 @@ class GamePlay():
 		if key == pygame.K_SPACE or key == pygame.K_RETURN:
 			text = self.items[self.current_item].text
 			if text == 'Start':
-				self.initGame(pygame.font.SysFont("comicsansms", 40), "Mario", player.Player(100, 1300, globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), 1)
+				self.initGame(pygame.font.SysFont("comicsansms", 40), "Mario", player.Player(self.player_positions['1'], globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), 1)
 			elif text == 'Settings':
 				self.settings()
 			elif text == 'Choose level':
 				self.chooseLevel()
 			elif text == 'Quit':
 				sys.exit()
+			else:
+				self.initGame(pygame.font.SysFont("comicsansms", 40), "Mario", player.Player(self.player_positions[text], globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), int(text))	
     
     # display the start menu  
 	def menuLoop(self):
@@ -244,7 +246,14 @@ class GamePlay():
 				
 	
 	def chooseLevel(self):
-		pass
+		# add numbers of all available levels (no level names for now)
+		level_numbers = []
+		for i in range (0, self.max_levels):
+			level_numbers.append(str(i + 1))
+		
+		# initialize and display a submenu	
+		self.initMenu(pygame.time.Clock(), None, 40, globvar.MENU_DEFAULT, level_numbers, True)	
+		self.menuLoop()
 	
 	def settings(self):		
 		pass
