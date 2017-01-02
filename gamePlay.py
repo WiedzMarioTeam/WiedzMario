@@ -4,35 +4,33 @@ class GamePlay():
 	def __init__(self):
 		self.menu_loop = True
 	
-	# main menu initialization
-	def initMenu(self, clock, font, font_size, font_color):
+	# menu initialization
+	def initMenu(self, clock, font, font_size, font_color, menu_items, start_menu):
 		#create the game screen
 		self.screen = pygame.display.set_mode((globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT), 0, 32)
 		self.scr_width = self.screen.get_rect().width
 		self.scr_height = self.screen.get_rect().height
 		self.font = font
-		self.items_start = ['Start', 'Choose level', 'Settings', 'Quit']
+		self.start_menu = start_menu
+		self.menu_items = menu_items
 		# to be implemented
 		self.items_in_game = None
 		self.clock = clock
-		self.start_menu_items = []
-		# to be implemented
-		self.in_game_menu_items = []
 		self.items = []
         
-		for index, item in enumerate(self.items_start):
-			start_menu_item = menuItem.MenuItem(item, font, font_size, font_color, 0, 0)
+		for index, item in enumerate(self.menu_items):
+			menu_item = menuItem.MenuItem(item, font, font_size, font_color, 0, 0)
  
             # height of text block
-			block_height = len(self.items_start) * start_menu_item.height
-			pos_x = (self.scr_width / 2) - (start_menu_item.width / 2)
-			pos_y = (self.scr_height / 2) - (block_height / 2) + ((index*2) + index * start_menu_item.height)
+			block_height = len(self.menu_items) * menu_item.height
+			pos_x = (self.scr_width / 2) - (menu_item.width / 2)
+			pos_y = (self.scr_height / 2) - (block_height / 2) + ((index*2) + index * menu_item.height)
             
-			start_menu_item.set_position(pos_x, pos_y)
-			self.start_menu_items.append(start_menu_item)
+			menu_item.set_position(pos_x, pos_y)
+			self.items.append(menu_item)
 		
 		self.current_item = None
-		self.items = self.start_menu_items
+
         
     
     # handle option choice
@@ -62,7 +60,7 @@ class GamePlay():
 		if key == pygame.K_SPACE or key == pygame.K_RETURN:
 			text = self.items[self.current_item].text
 			if text == 'Start':
-				self.gameLoop()
+				self.initGame(pygame.font.SysFont("comicsansms", 40), "Mario", player.Player(100, 1300, globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), 1)
 			elif text == 'Settings':
 				self.settings()
 			elif text == 'Choose level':
@@ -121,8 +119,8 @@ class GamePlay():
 		
 		self.levels = [level_1, level_2]
 		
-		self.currentLevel = level_1	
-		self.character.level = level_1
+		self.currentLevel = self.levels[current_level_no - 1]	
+		self.character.level = self.levels[current_level_no - 1]	
 		
 		self.sprites = pygame.sprite.Group()
 		self.sprites.add(self.character)
@@ -130,10 +128,11 @@ class GamePlay():
 		self.camera = cameraModule.Camera(cameraModule.complex_camera, self.currentLevel.width, self.currentLevel.height)
 		self.currentLevel.timeStart = time.time()
 		
+		self.gameLoop()
+		
 	
 	# gameplay loop
 	def gameLoop(self):	
-		self.initGame(pygame.font.SysFont("comicsansms", 40), "Mario", player.Player(100, 1300, globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), 1)
 		# the event loop
 		while self.menu_loop:
 		
