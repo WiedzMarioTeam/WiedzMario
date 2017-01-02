@@ -38,7 +38,7 @@ def main():
  	sprites = pygame.sprite.Group()
  	sprites.add(character)
 	
-	exit_clicked = False
+	exit_game = False
  
 	clock = pygame.time.Clock()
 	currentLevelNumber = 1
@@ -48,7 +48,7 @@ def main():
 	currentLevel.timeStart = time.time()
 	
 	# the event loop
-	while not exit_clicked:
+	while not exit_game:
 	
 		#przetwarzamy ruchy przeciwnikow
 		for enemy in currentLevel.enemiesSet.enemies:
@@ -58,7 +58,7 @@ def main():
 		for event in pygame.event.get():
             
 			if event.type == pygame.QUIT:
-				exit_clicked = True
+				exit_game = True
 			# on key press
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_LEFT:
@@ -96,7 +96,7 @@ def main():
 					screen.blit(scoreText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT + text_height + 20)/2))	
 					pygame.display.update()
 					pygame.time.delay(3000)
-					pygame.quit()
+					exit_game = True
 				else:
 					currentLevel = levels[currentLevelNumber]
 					currentLevelNumber += 1
@@ -118,6 +118,11 @@ def main():
 		#Jesli zostalo 0 zyc, to funkcja informuje o koncu gry			
 		if character.lives == 0:
 			utils.gameOver(currentLevel, screen, character)
+			break
+		
+		# in case of end-game
+		if exit_game == True:
+			break
 			
 		screen.fill(globvar.BACKGROUND_FILL)
 
