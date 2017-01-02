@@ -63,7 +63,12 @@ class GamePlay():
 			text = self.items[self.current_item].text
 			if text == 'Start':
 				self.gameLoop()
-            
+			elif text == 'Settings':
+				self.settings()
+			elif text == 'Choose level':
+				self.chooseLevel()
+			elif text == 'Quit':
+				sys.exit()
     
     # display the start menu  
 	def menuLoop(self):
@@ -72,7 +77,7 @@ class GamePlay():
             
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
-					mainloop = False
+					sys.exit()
 				if event.type == pygame.KEYDOWN:
 					self.setKeySelection(event.key)
 
