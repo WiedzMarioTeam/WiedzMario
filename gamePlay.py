@@ -10,7 +10,7 @@ class GamePlay():
 		self.pos_volume = None
 		
 	# menu initialization
-	def initMenu(self, clock, font, font_size, font_color, menu_items, start_menu, menu_level):
+	def initMenu(self, clock, font, font_size, font_color, menu_items, start_menu, menu_level, menu_label = None):
 		#create the game screen
 		self.screen = pygame.display.set_mode((globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT), 0, 32)
 		self.scr_width = self.screen.get_rect().width
@@ -21,6 +21,7 @@ class GamePlay():
 		self.menu_level = menu_level
 		self.clock = clock
 		self.items = []
+		self.menu_label = menu_label
         
 		for index, item in enumerate(self.menu_items):
 			# toggle sound logic
@@ -58,6 +59,7 @@ class GamePlay():
 				item.set_font_color(globvar.MENU_INACTIVE)
 		if self.current_item is None:
 			self.current_item = 0
+			self.items[self.current_item].set_font_color(globvar.MENU_ACTIVE)
 		else:	
 			if key == pygame.K_UP and self.current_item > 0:
 				self.current_item -= 1
@@ -101,9 +103,10 @@ class GamePlay():
     
     # display the start menu  
 	def menuLoop(self):
+		# a little trick to highlight the first position when menu is entered
+		self.setKeySelection(None)
 		while self.menu_loop:
 			self.clock.tick(globvar.TICK)
-			#self.setMenuLayout()
             
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
@@ -113,6 +116,9 @@ class GamePlay():
 
 			if self.menu_loop:
 				self.screen.fill(globvar.MENU_FILL)
+				
+				if self.menu_label is not None:
+					self.screen.blit(self.menu_label.label, self.menu_label.position)
  
 				for item in self.items:
 					self.screen.blit(item.label, item.position)
@@ -285,12 +291,22 @@ class GamePlay():
 			level_numbers.append(str(i + 1))
 		
 		# initialize and display a submenu	
-		self.initMenu(pygame.time.Clock(), None, 40, globvar.MENU_DEFAULT, level_numbers, True, 2)	
+		menu_label = menuItem.MenuItem('Levels', None, 50, globvar.MENU_LABEL, 0, 0)
+		pos_x = (self.scr_width / 2) - (menu_label.width / 2)
+		pos_y = 120
+		menu_label.set_position(pos_x, pos_y)
+		self.initMenu(pygame.time.Clock(), None, 40, globvar.MENU_DEFAULT, level_numbers, True, 2, menu_label)	
 		self.menuLoop()
 	
 	# settings submenu
 	def settings(self):
-		self.initMenu(pygame.time.Clock(), None, 40, globvar.MENU_DEFAULT, ['Toggle sound', 'Sound volume', 'Controls'], True, 2)	
+		# initialize and display a submenu	
+		menu_label = menuItem.MenuItem('Settings', None, 50, globvar.MENU_LABEL, 0, 0)
+		pos_x = (self.scr_width / 2) - (menu_label.width / 2)
+		pos_y = 120
+		menu_label.set_position(pos_x, pos_y)
+		
+		self.initMenu(pygame.time.Clock(), None, 40, globvar.MENU_DEFAULT, ['Toggle sound', 'Sound volume', 'Controls'], True, 2, menu_label)	
 		self.menuLoop()
 
 	# check if sound is enabled
