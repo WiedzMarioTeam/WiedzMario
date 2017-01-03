@@ -13,7 +13,8 @@ COLOR_BLACK = (0,0,0)
 COLOR_YELLOW = (255, 255, 0)
 
 # menu colors
-MENU_ACTIVE = (119, 137, 89)
+MENU_ACTIVE = (128, 128, 0)
+MENU_INACTIVE = (119, 137, 89)
 MENU_DEFAULT = (43, 55, 24)
 
 # screen size

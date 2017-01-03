@@ -8,7 +8,7 @@ def main():
 	# initialize main game & menu loop logic
 	currentGamePlay = gamePlay.GamePlay()
 	
-	currentGamePlay.initMenu(pygame.time.Clock(), None, 40, globvar.MENU_DEFAULT, ['Start', 'Choose level', 'Settings', 'Quit'], True)
+	currentGamePlay.initMenu(pygame.time.Clock(), None, 40, globvar.MENU_DEFAULT, ['Start', 'Choose level', 'Settings', 'Quit'], True, 1)
 	currentGamePlay.menuLoop()
  
 	pygame.quit()
