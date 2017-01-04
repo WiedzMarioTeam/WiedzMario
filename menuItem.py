@@ -1,6 +1,6 @@
 import pygame
 
-# template class for all menu items
+# template class for all text-based menu items
 class MenuItem(pygame.font.Font):
     def __init__(self, text, font, font_size, font_color, pos_x, pos_y):
  

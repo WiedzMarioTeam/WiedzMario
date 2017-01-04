@@ -22,5 +22,6 @@ class GameMusic(object):
 	# play a sound only if sound is enabled
 	def playSound(self, key):
 		if self.isSound():
-			self.sounds[key].set_volume(self.sound_level)
+			self.sounds[key].set_volume((self.sound_level / 10.0) + 0.1)
 			self.sounds[key].play(0)
+

@@ -1,12 +1,11 @@
-import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, utilsSet, cameraModule, menuItem, gameMusic, sys
+import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, utilsSet, cameraModule, menuItem, volMenuItem, gameMusic, sys
 
 class GamePlay():
 	def __init__(self):
-		self.menu_loop = True
 		self.max_levels = 2
 		self.player_positions = {'1': (100, 1300), '2': (100, 650)}
 		# object handling class music
-		self.game_music = gameMusic.GameMusic(0, {'jump': 'sfx/jump.wav'})
+		self.game_music = gameMusic.GameMusic(2, {'jump': 'sfx/jump.wav'})
 		self.pos_toggle = None
 		self.pos_volume = None
 		# control keys
@@ -18,6 +17,7 @@ class GamePlay():
 	# menu initialization
 	def initMenu(self, clock, font, font_size, font_color, menu_items, start_menu, menu_id, menu_label = None):
 		#create the game screen
+		self.menu_loop = True
 		self.screen = pygame.display.set_mode((globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT), 0, 32)
 		self.scr_width = self.screen.get_rect().width
 		self.scr_height = self.screen.get_rect().height
@@ -48,6 +48,36 @@ class GamePlay():
 			pos_x = (self.scr_width / 2) - (menu_item.width / 2)
 			pos_y = (self.scr_height / 2) - (block_height / 2) + ((index * 2) + index * menu_item.height)
             
+			menu_item.set_position(pos_x, pos_y)
+			self.items.append(menu_item)
+		
+		self.current_item = None
+
+	
+	# volume adjustment menu initialization
+	def initVolMenu(self, clock, start_menu, menu_id, menu_label):
+		#create the game screen
+		self.menu_loop = True
+		self.screen = pygame.display.set_mode((globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT), 0, 32)
+		self.scr_width = self.screen.get_rect().width
+		self.scr_height = self.screen.get_rect().height
+		self.start_menu = start_menu
+		self.menu_id = menu_id
+		self.clock = clock
+		self.items = []
+		self.menu_label = menu_label
+        
+		initial_x = (self.scr_width - (globvar.MENU_VOL_NO * globvar.MENU_VOL_WIDTH) - ((globvar.MENU_VOL_NO - 1) *globvar.MENU_SPACE_BETWEEN)) / 2
+		initial_y = self.scr_height - self.scr_height / 4
+		
+		for i in range(0, globvar.MENU_VOL_NO):
+			width = globvar.MENU_VOL_WIDTH
+			height = (i + 1) * globvar.MENU_VOL_HEIGHT
+
+			menu_item = volMenuItem.VolMenuItem(width, height, (globvar.MENU_DEFAULT if i <= (self.game_music.sound_level) else globvar.MENU_INACTIVE), i, 0, 0)
+ 
+			pos_x = initial_x + (i * globvar.MENU_VOL_WIDTH + i * globvar.MENU_SPACE_BETWEEN)
+			pos_y = initial_y - (i * globvar.MENU_VOL_HEIGHT)
 			menu_item.set_position(pos_x, pos_y)
 			self.items.append(menu_item)
 		
@@ -117,6 +147,10 @@ class GamePlay():
 				self.setKeySelection(key)
 			elif text == 'Controls':
 				self.controls()
+			elif text == 'Sound volume' and self.items[self.current_item].is_active():
+				self.volume()
+			elif text == 'Sound volume' and not self.items[self.current_item].is_active():
+				return	
 			elif text.startswith('Left') or text.startswith('Right') or text.startswith('Jump'):
 				self.change_keys = True
 				self.updateText(text)
@@ -126,10 +160,48 @@ class GamePlay():
 		
 		# escape key allows the user to go level up in menu
 		if self.menu_id in (2, 3) and key == pygame.K_ESCAPE:
+			self.menu_loop = False
 			self.initMenu(pygame.time.Clock(), None, 40, globvar.MENU_DEFAULT, ['Start', 'Choose level', 'Settings', 'Quit'], True, 1)
 			self.menuLoop()
 		elif self.menu_id == 4 and key == pygame.K_ESCAPE:
+			self.menu_loop = False
 			self.settings()
+			
+	
+	    # handle option choice
+	def setKeyVolSelection(self, key):
+		if self.current_item is None:
+			if key == pygame.K_LEFT and self.game_music.sound_level == 0:
+				self.current_item = 0
+			elif key == pygame.K_LEFT and self.game_music.sound_level > 0:
+				self.current_item = self.game_music.sound_level - 1
+				self.game_music.sound_level -= 1
+			elif key == pygame.K_RIGHT and self.game_music.sound_level < globvar.MENU_VOL_NO-1:
+				self.current_item = self.game_music.sound_level + 1
+				self.game_music.sound_level += 1
+			elif key == pygame.K_RIGHT and self.game_music.sound_level == globvar.MENU_VOL_NO-1:
+				self.current_item = globvar.MENU_VOL_NO -1
+		else:
+			if key == pygame.K_ESCAPE:
+				self.menu_loop = False
+				self.settings()
+			if key == pygame.K_LEFT and self.current_item == 0:
+				self.current_item = 0
+			elif key == pygame.K_LEFT and self.current_item > 0:
+				self.current_item -= 1
+				self.game_music.sound_level -= 1
+			elif key == pygame.K_RIGHT and self.current_item < globvar.MENU_VOL_NO-1:
+				self.current_item += 1
+				self.game_music.sound_level += 1
+			elif key == pygame.K_RIGHT and self.current_item == globvar.MENU_VOL_NO-1:
+				self.current_item = globvar.MENU_VOL_NO -1
+				
+		for item in self.items:
+			# set color based on current volume
+			if item.value <= self.game_music.sound_level:
+				item.set_color(globvar.MENU_DEFAULT)
+			else:
+				item.set_color(globvar.MENU_INACTIVE)
     
     # display the start menu  
 	def menuLoop(self):
@@ -142,7 +214,7 @@ class GamePlay():
 				if event.type == pygame.QUIT:
 					sys.exit()
 				if event.type == pygame.KEYDOWN:
-					self.setKeySelection(event.key)
+						self.setKeySelection(event.key)
 
 			if self.menu_loop:
 				self.screen.fill(globvar.MENU_FILL)
@@ -154,8 +226,31 @@ class GamePlay():
 					self.screen.blit(item.label, item.position)
  
 				pygame.display.flip()
+    
+    
+    # display the volume selection menu  
+	def volMenuLoop(self):
+		while self.menu_loop:
+			self.clock.tick(globvar.TICK)
+            
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					sys.exit()
+				if event.type == pygame.KEYDOWN:
+					self.setKeyVolSelection(event.key)
+
+			if self.menu_loop:
+				self.screen.fill(globvar.MENU_FILL)
+				
+				if self.menu_label is not None:
+					self.screen.blit(self.menu_label.label, self.menu_label.position)
+ 
+				for item in self.items:
+					self.screen.blit(item.image, item.position)
+ 
+				pygame.display.flip()    
         
-        
+	
 	# initialization of the actual gameplay
 	def initGame(self, font, caption, character, clock, current_level_no):
 		#create the game screen
@@ -397,5 +492,13 @@ class GamePlay():
 			self.items[1].set_text('Right' + ' [ ' + pygame.key.name(self.right) + ' ]')
 		else:
 			self.items[2].set_text('Jump' + ' [ ' + pygame.key.name(self.jump) + ' ]')
+	
+	def volume(self):
+		menu_label = menuItem.MenuItem('Customize sound volume', None, 50, globvar.MENU_LABEL, 0, 0)
+		pos_x = (self.scr_width / 2) - (menu_label.width / 2)
+		pos_y = 120
+		menu_label.set_position(pos_x, pos_y)
+		self.initVolMenu(pygame.time.Clock(), True, 5, menu_label)
+		self.volMenuLoop()
 	    
     
