@@ -6,6 +6,7 @@ class GameMenu(object):
 		self.menu_loop = True
 		self.change_keys = False
 		self.current_item = None
+		self.is_reset = False
 		self.items = []
         
 	
@@ -38,7 +39,7 @@ class GameMenu(object):
 			menu_item.set_position(pos_x, pos_y)
 			self.items.append(menu_item)
 			
-			self.current_item = 0
+			self.current_item = None
 		
 	
 	# initialization of sound menu object
@@ -61,7 +62,7 @@ class GameMenu(object):
 			menu_item.set_position(pos_x, pos_y)
 			self.items.append(menu_item)
 			
-			self.current_item = 0
+			self.current_item = None
 
 
 	

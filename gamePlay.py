@@ -101,10 +101,12 @@ class GamePlay(object):
 						self.screen.blit(item.label, item.position)
  
 				pygame.display.flip()
+				
 	
 			
     # process main menu events
 	def setKeySelectionMain(self, menu, key):
+			
 		for item in menu.items:
 			item.set_bold(False)
 			# reset all active items
@@ -112,7 +114,7 @@ class GamePlay(object):
 				item.set_font_color(globvar.MENU_DEFAULT)
 			else:
 				item.set_font_color(globvar.MENU_INACTIVE)
-				
+	
 		if menu.current_item is None:
 			menu.current_item = 0
 			menu.items[menu.current_item].set_font_color(globvar.MENU_ACTIVE)
@@ -144,7 +146,7 @@ class GamePlay(object):
 				self.menuLoop(self.menu_tree['levels'])
 			elif text == 'Quit':
 				sys.exit()
-		
+
 	
 	# process settings menu events
 	def setKeySelectionSettings(self, menu, key):
@@ -192,6 +194,7 @@ class GamePlay(object):
 		
 		# escape key allows the user to go level up in menu
 		if key == pygame.K_ESCAPE:
+			menu.current_item = 0
 			menu.menu_loop = False
 	
 	
@@ -224,11 +227,12 @@ class GamePlay(object):
 			text = menu.items[menu.current_item].text
 			menu.menu_loop = False
 			self.main_loop = True
+			menu.current_item = 0
 			self.initGame(pygame.font.SysFont("comicsansms", 40), "Mario", player.Player(self.player_positions[text], globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), int(text))
-		
 		# escape key allows the user to go level up in menu
 		if key == pygame.K_ESCAPE:
-			menu.menu_loop = False		
+			menu.menu_loop = False
+			menu.current_item = 0		
 	
 	
 	# process control customization menu
@@ -290,6 +294,7 @@ class GamePlay(object):
 		# escape key allows the user to go level up in menu
 		if key == pygame.K_ESCAPE:
 			menu.menu_loop = False
+			menu.current_item = 0
     
 	
 	# process volume customization menu
