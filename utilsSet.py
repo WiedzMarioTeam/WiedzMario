@@ -27,4 +27,4 @@ class Utils(object):
 		screen.blit(scoreText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT + text_height + 20)/2))		
 		pygame.display.update()
 		pygame.time.delay(3000)
-		pygame.quit()
+		#pygame.quit()

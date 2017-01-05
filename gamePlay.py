@@ -1,265 +1,335 @@
-import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, utilsSet, cameraModule, menuItem, volMenuItem, gameMusic, sys
+import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, utilsSet, cameraModule, menuItem, volMenuItem, gameMusic, gameMenu, sys
 
-class GamePlay():
+class GamePlay(object):
+	# set basic game settings
 	def __init__(self):
-		self.max_levels = 2
+		self.main_loop = True
+		self.gameplay_loop = False
+		self.max_levels = globvar.LEVEL_NO
 		self.player_positions = {'1': (100, 1300), '2': (100, 650)}
 		# object handling class music
 		self.game_music = gameMusic.GameMusic(2, {'jump': 'sfx/jump.wav'})
-		self.pos_toggle = None
-		self.pos_volume = None
 		# control keys
 		self.jump = pygame.K_SPACE
 		self.left = pygame.K_LEFT
 		self.right = pygame.K_RIGHT
 		self.change_keys = False
-	
-	# menu initialization
-	def initMenu(self, clock, font, font_size, font_color, menu_items, start_menu, menu_id, menu_label = None):
-		#create the game screen
-		self.menu_loop = True
+		# screen parameters
 		self.screen = pygame.display.set_mode((globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT), 0, 32)
 		self.scr_width = self.screen.get_rect().width
 		self.scr_height = self.screen.get_rect().height
-		self.font = font
-		self.start_menu = start_menu
-		self.menu_items = menu_items
-		self.menu_id = menu_id
-		self.clock = clock
-		self.items = []
-		self.menu_label = menu_label
-        
-		for index, item in enumerate(self.menu_items):
-			# toggle sound logic
-			if item == 'Toggle sound':
-				item = 'Toggle sound' + ' ' + ('(Off)' if self.isSound() else '(On)')
-				self.pos_toggle = index	
-			menu_item = menuItem.MenuItem(item, font, font_size, font_color, 0, 0)
-			
-			# sound volume logic
-			if item == 'Sound volume':
-				self.pos_volume = index
-				if not self.isSound():
-					menu_item.set_active(False)
-					menu_item.set_font_color(globvar.MENU_INACTIVE)
- 
-            # height of text block
-			block_height = len(self.menu_items) * menu_item.height
-			pos_x = (self.scr_width / 2) - (menu_item.width / 2)
-			pos_y = (self.scr_height / 2) - (block_height / 2) + ((index * 2) + index * menu_item.height)
+		pygame.display.set_caption('Mario')	
+		self.utils = utilsSet.Utils(self.screen)
+		self.clock = pygame.time.Clock()
+		# menu tree
+		self.menu_tree = {}
+		self.fun_dict = {}
+		self.populateMenuTree()
+		self.setFunDict()
+		self.menuLoop(self.menu_tree['main'])
+
+	
+	# create game menu
+	def populateMenuTree(self):
+		self.menu_tree['main'] = gameMenu.GameMenu()
+		self.menu_tree['settings'] = gameMenu.GameMenu()
+		self.menu_tree['levels'] = gameMenu.GameMenu()
+		self.menu_tree['controls'] = gameMenu.GameMenu()
+		self.menu_tree['sound'] = gameMenu.GameMenu()
+		
+		self.menu_tree['main'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Start', 'Choose level', 'Settings', 'Quit'], True, 'main')
+		self.menu_tree['settings'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Toggle sound', 'Sound volume', 'Controls'], True, 'settings', self.getMenuLabel('Settings'))
+		self.menu_tree['levels'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, self.getLevels(), True, 'levels', self.getMenuLabel('Choose level'))
+		self.menu_tree['controls'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Left' + ' [ ' + pygame.key.name(self.left) + ' ]' , 'Right' + ' [ ' + pygame.key.name(self.right) + ' ]', 'Jump' + ' [ ' + pygame.key.name(self.jump) + ' ]'], True, 'controls', self.getMenuLabel('Customize controls'))
+		self.menu_tree['sound'].initVolMenu(self.scr_width, self.scr_height, self.game_music, 'sound', self.getMenuLabel('Customize sound volume'))
+	
+	
+	# set function dictionary
+	def setFunDict(self):
+		self.fun_dict['main'] = self.setKeySelectionMain
+		self.fun_dict['settings'] = self.setKeySelectionSettings
+		self.fun_dict['levels'] = self.setKeySelectionLevels
+		self.fun_dict['controls'] = self.setKeySelectionControls
+		self.fun_dict['sound'] = self.setKeySelectionSound
+	
+	# create menu label
+	def getMenuLabel(self, text):
+		menu_label = menuItem.MenuItem(text, None, 50, globvar.MENU_LABEL, 0, 0)
+		pos_x = (self.scr_width / 2) - (menu_label.width / 2)
+		pos_y = globvar.MENU_LABEL_Y
+		menu_label.set_position(pos_x, pos_y)
+		
+		return menu_label
+		
+	
+	# get levels list
+	def getLevels(self):
+		# add numbers of all available levels (no level names for now)
+		level_numbers = []
+		for i in range (0, self.max_levels):
+			level_numbers.append(str(i + 1))
+		
+		return level_numbers
+	
+	
+	# display the menu  
+	def menuLoop(self, menu):
+		# a little trick to highlight the first position when menu is entered
+		self.fun_dict[menu.menu_name](menu, None)
+		
+		while menu.menu_loop:
+			self.clock.tick(globvar.TICK)
             
-			menu_item.set_position(pos_x, pos_y)
-			self.items.append(menu_item)
-		
-		self.current_item = None
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					sys.exit()
+				if event.type == pygame.KEYDOWN:
+						self.fun_dict[menu.menu_name](menu, event.key)
 
-	
-	# volume adjustment menu initialization
-	def initVolMenu(self, clock, start_menu, menu_id, menu_label):
-		#create the game screen
-		self.menu_loop = True
-		self.screen = pygame.display.set_mode((globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT), 0, 32)
-		self.scr_width = self.screen.get_rect().width
-		self.scr_height = self.screen.get_rect().height
-		self.start_menu = start_menu
-		self.menu_id = menu_id
-		self.clock = clock
-		self.items = []
-		self.menu_label = menu_label
-        
-		initial_x = (self.scr_width - (globvar.MENU_VOL_NO * globvar.MENU_VOL_WIDTH) - ((globvar.MENU_VOL_NO - 1) *globvar.MENU_SPACE_BETWEEN)) / 2
-		initial_y = self.scr_height - self.scr_height / 4
-		
-		for i in range(0, globvar.MENU_VOL_NO):
-			width = globvar.MENU_VOL_WIDTH
-			height = (i + 1) * globvar.MENU_VOL_HEIGHT
-
-			menu_item = volMenuItem.VolMenuItem(width, height, (globvar.MENU_DEFAULT if i <= (self.game_music.sound_level) else globvar.MENU_INACTIVE), i, 0, 0)
+			if menu.menu_loop:
+				self.screen.fill(globvar.MENU_FILL)
+				
+				if menu.menu_label is not None:
+					self.screen.blit(menu.menu_label.label, menu.menu_label.position)
  
-			pos_x = initial_x + (i * globvar.MENU_VOL_WIDTH + i * globvar.MENU_SPACE_BETWEEN)
-			pos_y = initial_y - (i * globvar.MENU_VOL_HEIGHT)
-			menu_item.set_position(pos_x, pos_y)
-			self.items.append(menu_item)
-		
-		self.current_item = None
-
+				# display menu positons depending on their type
+				if menu.menu_name == 'sound':
+					for item in menu.items:
+						self.screen.blit(item.image, item.position)
+				else:
+					for item in menu.items:
+						self.screen.blit(item.label, item.position)
+ 
+				pygame.display.flip()
+	
 			
-    # handle option choice
-	def setKeySelection(self, key):
-		for item in self.items:
+    # process main menu events
+	def setKeySelectionMain(self, menu, key):
+		for item in menu.items:
 			item.set_bold(False)
 			# reset all active items
 			if item.is_active():
 				item.set_font_color(globvar.MENU_DEFAULT)
 			else:
 				item.set_font_color(globvar.MENU_INACTIVE)
-		if self.current_item is None:
-			self.current_item = 0
-			self.items[self.current_item].set_font_color(globvar.MENU_ACTIVE)
+				
+		if menu.current_item is None:
+			menu.current_item = 0
+			menu.items[menu.current_item].set_font_color(globvar.MENU_ACTIVE)
 		else:	
-			if key == pygame.K_UP and self.current_item > 0:
-				self.current_item -= 1
-			elif key == pygame.K_UP and self.current_item == 0:
-				self.current_item = len(self.items) - 1
-			elif key == pygame.K_DOWN and self.current_item < len(self.items) - 1:
-				self.current_item += 1
-			elif key == pygame.K_DOWN and self.current_item == len(self.items) - 1:
-				self.current_item = 0
+			if key == pygame.K_UP and menu.current_item > 0:
+				menu.current_item -= 1
+			elif key == pygame.K_UP and menu.current_item == 0:
+				menu.current_item = len(menu.items) - 1
+			elif key == pygame.K_DOWN and menu.current_item < len(menu.items) - 1:
+				menu.current_item += 1
+			elif key == pygame.K_DOWN and menu.current_item == len(menu.items) - 1:
+				menu.current_item = 0
  
 		# highlight the selected item
-		self.items[self.current_item].set_bold(True)
-		if self.change_keys:
-			self.items[self.current_item].set_font_color(globvar.MENU_CHANGE)
-		elif self.items[self.current_item].is_active():
-			self.items[self.current_item].set_font_color(globvar.MENU_ACTIVE)
-		else:
-			self.items[self.current_item].set_font_color(globvar.MENU_INACTIVE)
-		
-		# check if control change is to be performed
-		if self.change_keys and key == pygame.K_ESCAPE:
-			text = self.items[self.current_item].text
-			self.resetText(text)
-			self.change_keys = False
-			key = None
-			self.setKeySelection(key)
-		elif self.change_keys and key != pygame.K_RETURN:
-			text = self.items[self.current_item].text
-			self.changeKey(text, key)
-			self.change_keys = False
-			key = None
-			self.setKeySelection(key) 
- 
+		menu.items[menu.current_item].set_bold(True)
+		menu.items[menu.current_item].set_font_color(globvar.MENU_ACTIVE)
+        
         # check if any menu button was "pressed"
-		if key == pygame.K_RETURN and not self.change_keys:
-			text = self.items[self.current_item].text
+		if key == pygame.K_RETURN:
+			text = menu.items[menu.current_item].text
 			if text == 'Start':
+				self.main_loop = True
 				self.initGame(pygame.font.SysFont("comicsansms", 40), "Mario", player.Player(self.player_positions['1'], globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), 1)
 			elif text == 'Settings':
-				self.settings()
+				self.menu_tree['settings'].menu_loop = True
+				self.menuLoop(self.menu_tree['settings'])
 			elif text == 'Choose level':
-				self.chooseLevel()
+				self.menu_tree['levels'].menu_loop = True
+				self.menuLoop(self.menu_tree['levels'])
 			elif text == 'Quit':
 				sys.exit()
-			elif text.startswith('Toggle sound'):
-				self.toggleSound()
+		
+	
+	# process settings menu events
+	def setKeySelectionSettings(self, menu, key):
+		for item in menu.items:
+			item.set_bold(False)
+			# reset all active items
+			if item.is_active():
+				item.set_font_color(globvar.MENU_DEFAULT)
+			else:
+				item.set_font_color(globvar.MENU_INACTIVE)
+				
+		if menu.current_item is None:
+			menu.current_item = 0
+			menu.items[menu.current_item].set_font_color(globvar.MENU_ACTIVE)
+		else:	
+			if key == pygame.K_UP and menu.current_item > 0:
+				menu.current_item -= 1
+			elif key == pygame.K_UP and menu.current_item == 0:
+				menu.current_item = len(menu.items) - 1
+			elif key == pygame.K_DOWN and menu.current_item < len(menu.items) - 1:
+				menu.current_item += 1
+			elif key == pygame.K_DOWN and menu.current_item == len(menu.items) - 1:
+				menu.current_item = 0
+ 
+		# highlight the selected item
+		menu.items[menu.current_item].set_bold(True)
+		menu.items[menu.current_item].set_font_color(globvar.MENU_ACTIVE)
+        
+        # check if any menu button was "pressed"
+		if key == pygame.K_RETURN:
+			text = menu.items[menu.current_item].text
+			if text.startswith('Toggle sound'):
+				self.toggleSound(menu)
 				# a little trick to refresh menu positions in real time
 				key = None
-				self.setKeySelection(key)
+				self.setKeySelectionSettings(menu, key)
 			elif text == 'Controls':
-				self.controls()
-			elif text == 'Sound volume' and self.items[self.current_item].is_active():
-				self.volume()
-			elif text == 'Sound volume' and not self.items[self.current_item].is_active():
+				self.menu_tree['controls'].menu_loop = True
+				self.menuLoop(self.menu_tree['controls'])
+			elif text == 'Sound volume' and menu.items[menu.current_item].is_active():
+				self.menu_tree['sound'].menu_loop = True
+				self.menuLoop(self.menu_tree['sound'])
+			elif text == 'Sound volume' and not menu.items[menu.current_item].is_active():
 				return	
-			elif text.startswith('Left') or text.startswith('Right') or text.startswith('Jump'):
-				self.change_keys = True
-				self.updateText(text)
-				self.setKeySelection(key)
-			else:
-				self.initGame(pygame.font.SysFont("comicsansms", 40), "Mario", player.Player(self.player_positions[text], globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), int(text))
 		
 		# escape key allows the user to go level up in menu
-		if self.menu_id in (2, 3) and key == pygame.K_ESCAPE:
-			self.menu_loop = False
-			self.initMenu(pygame.time.Clock(), None, 40, globvar.MENU_DEFAULT, ['Start', 'Choose level', 'Settings', 'Quit'], True, 1)
-			self.menuLoop()
-		elif self.menu_id == 4 and key == pygame.K_ESCAPE:
-			self.menu_loop = False
-			self.settings()
-			
+		if key == pygame.K_ESCAPE:
+			menu.menu_loop = False
 	
-	    # handle option choice
-	def setKeyVolSelection(self, key):
-		if self.current_item is None:
+	
+	# process levels menu events
+	def setKeySelectionLevels(self, menu, key):
+		for item in menu.items:
+			item.set_bold(False)
+			# reset all active items
+			item.set_font_color(globvar.MENU_DEFAULT)
+				
+		if menu.current_item is None:
+			menu.current_item = 0
+			menu.items[menu.current_item].set_font_color(globvar.MENU_ACTIVE)
+		else:	
+			if key == pygame.K_UP and menu.current_item > 0:
+				menu.current_item -= 1
+			elif key == pygame.K_UP and menu.current_item == 0:
+				menu.current_item = len(menu.items) - 1
+			elif key == pygame.K_DOWN and menu.current_item < len(menu.items) - 1:
+				menu.current_item += 1
+			elif key == pygame.K_DOWN and menu.current_item == len(menu.items) - 1:
+				menu.current_item = 0
+ 
+		# highlight the selected item
+		menu.items[menu.current_item].set_bold(True)
+		menu.items[menu.current_item].set_font_color(globvar.MENU_ACTIVE)
+        
+        # check if any menu button was "pressed"
+		if key == pygame.K_RETURN:
+			text = menu.items[menu.current_item].text
+			menu.menu_loop = False
+			self.main_loop = True
+			self.initGame(pygame.font.SysFont("comicsansms", 40), "Mario", player.Player(self.player_positions[text], globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), int(text))
+		
+		# escape key allows the user to go level up in menu
+		if key == pygame.K_ESCAPE:
+			menu.menu_loop = False		
+	
+	
+	# process control customization menu
+	def setKeySelectionControls(self, menu, key):
+		for item in menu.items:
+			item.set_bold(False)
+			# reset all active items
+			if item.is_active():
+				item.set_font_color(globvar.MENU_DEFAULT)
+			else:
+				item.set_font_color(globvar.MENU_INACTIVE)
+		
+		if menu.current_item is None:
+			menu.current_item = 0
+			menu.items[menu.current_item].set_font_color(globvar.MENU_ACTIVE)
+		else:	
+			if key == pygame.K_UP and menu.current_item > 0:
+				menu.current_item -= 1
+			elif key == pygame.K_UP and menu.current_item == 0:
+				menu.current_item = len(menu.items) - 1
+			elif key == pygame.K_DOWN and menu.current_item < len(menu.items) - 1:
+				menu.current_item += 1
+			elif key == pygame.K_DOWN and menu.current_item == len(menu.items) - 1:
+				menu.current_item = 0
+ 
+		# highlight the selected item
+		menu.items[menu.current_item].set_bold(True)
+		menu.items[menu.current_item].set_font_color(globvar.MENU_ACTIVE)
+		
+		# show which item is being modified
+		if menu.change_keys:
+			menu.items[menu.current_item].set_font_color(globvar.MENU_CHANGE)
+		else:
+			menu.items[menu.current_item].set_font_color(globvar.MENU_ACTIVE)
+		
+		# check if control change is to be performed
+		if menu.change_keys and key == pygame.K_ESCAPE:
+			text = menu.items[menu.current_item].text
+			self.resetText(menu, text)
+			menu.change_keys = False
+			key = None
+			self.setKeySelectionControls(menu, key)
+		elif menu.change_keys and key != pygame.K_RETURN:
+			text = menu.items[menu.current_item].text
+			self.changeKey(menu, text, key)
+			menu.change_keys = False
+			key = None
+			self.setKeySelectionControls(menu, key)
+ 
+        # check if any menu button was "pressed"
+		if key == pygame.K_RETURN and not menu.change_keys:
+			menu.menu_loop = True
+			text = menu.items[menu.current_item].text
+			if text.startswith('Left') or text.startswith('Right') or text.startswith('Jump'):
+				menu.change_keys = True
+				self.updateText(menu, text)
+				self.setKeySelectionControls(menu, key)
+		
+		# escape key allows the user to go level up in menu
+		if key == pygame.K_ESCAPE:
+			menu.menu_loop = False
+    
+	
+	# process volume customization menu
+	def setKeySelectionSound(self, menu, key):
+		if menu.current_item is None:
 			if key == pygame.K_LEFT and self.game_music.sound_level == 0:
-				self.current_item = 0
+				menu.current_item = 0
 			elif key == pygame.K_LEFT and self.game_music.sound_level > 0:
-				self.current_item = self.game_music.sound_level - 1
+				menu.current_item = self.game_music.sound_level - 1
 				self.game_music.sound_level -= 1
 			elif key == pygame.K_RIGHT and self.game_music.sound_level < globvar.MENU_VOL_NO-1:
-				self.current_item = self.game_music.sound_level + 1
+				menu.current_item = self.game_music.sound_level + 1
 				self.game_music.sound_level += 1
 			elif key == pygame.K_RIGHT and self.game_music.sound_level == globvar.MENU_VOL_NO-1:
-				self.current_item = globvar.MENU_VOL_NO -1
+				menu.current_item = globvar.MENU_VOL_NO -1
 		else:
-			if key == pygame.K_ESCAPE:
-				self.menu_loop = False
-				self.settings()
-			if key == pygame.K_LEFT and self.current_item == 0:
-				self.current_item = 0
-			elif key == pygame.K_LEFT and self.current_item > 0:
-				self.current_item -= 1
+			if key == pygame.K_LEFT and menu.current_item == 0:
+				menu.current_item = 0
+			elif key == pygame.K_LEFT and menu.current_item > 0:
+				menu.current_item -= 1
 				self.game_music.sound_level -= 1
-			elif key == pygame.K_RIGHT and self.current_item < globvar.MENU_VOL_NO-1:
-				self.current_item += 1
+			elif key == pygame.K_RIGHT and menu.current_item < globvar.MENU_VOL_NO-1:
+				menu.current_item += 1
 				self.game_music.sound_level += 1
-			elif key == pygame.K_RIGHT and self.current_item == globvar.MENU_VOL_NO-1:
-				self.current_item = globvar.MENU_VOL_NO -1
+			elif key == pygame.K_RIGHT and menu.current_item == globvar.MENU_VOL_NO-1:
+				menu.current_item = globvar.MENU_VOL_NO -1
+			elif key == pygame.K_ESCAPE:
+				menu.menu_loop = False
 				
-		for item in self.items:
+		for item in menu.items:
 			# set color based on current volume
 			if item.value <= self.game_music.sound_level:
 				item.set_color(globvar.MENU_DEFAULT)
 			else:
 				item.set_color(globvar.MENU_INACTIVE)
     
-    # display the start menu  
-	def menuLoop(self):
-		# a little trick to highlight the first position when menu is entered
-		self.setKeySelection(None)
-		while self.menu_loop:
-			self.clock.tick(globvar.TICK)
-            
-			for event in pygame.event.get():
-				if event.type == pygame.QUIT:
-					sys.exit()
-				if event.type == pygame.KEYDOWN:
-						self.setKeySelection(event.key)
-
-			if self.menu_loop:
-				self.screen.fill(globvar.MENU_FILL)
-				
-				if self.menu_label is not None:
-					self.screen.blit(self.menu_label.label, self.menu_label.position)
- 
-				for item in self.items:
-					self.screen.blit(item.label, item.position)
- 
-				pygame.display.flip()
-    
-    
-    # display the volume selection menu  
-	def volMenuLoop(self):
-		while self.menu_loop:
-			self.clock.tick(globvar.TICK)
-            
-			for event in pygame.event.get():
-				if event.type == pygame.QUIT:
-					sys.exit()
-				if event.type == pygame.KEYDOWN:
-					self.setKeyVolSelection(event.key)
-
-			if self.menu_loop:
-				self.screen.fill(globvar.MENU_FILL)
-				
-				if self.menu_label is not None:
-					self.screen.blit(self.menu_label.label, self.menu_label.position)
- 
-				for item in self.items:
-					self.screen.blit(item.image, item.position)
- 
-				pygame.display.flip()    
-        
 	
 	# initialization of the actual gameplay
 	def initGame(self, font, caption, character, clock, current_level_no):
-		#create the game screen
-		self.screen = pygame.display.set_mode((globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT), 0, 32)
-		# set font
 		self.font = font
-		# set the window title
-		pygame.display.set_caption(caption)	
-		self.utils = utilsSet.Utils(self.screen)
 		# set the player character
 		self.character = character
 		# set the clock
@@ -297,7 +367,7 @@ class GamePlay():
 	# gameplay loop
 	def gameLoop(self):	
 		# the event loop
-		while self.menu_loop:
+		while self.main_loop:
 		
 			#przetwarzamy ruchy przeciwnikow
 			for enemy in self.currentLevel.enemiesSet.enemies:
@@ -307,7 +377,7 @@ class GamePlay():
 			for event in pygame.event.get():
 				
 				if event.type == pygame.QUIT:
-					self.menu_loop = False
+					self.main_loop = False
 				# on key press
 				if event.type == pygame.KEYDOWN:
 					if event.key == self.left:
@@ -348,7 +418,7 @@ class GamePlay():
 						self.screen.blit(scoreText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT + text_height + 20)/2))	
 						pygame.display.update()
 						pygame.time.delay(3000)
-						self.menu_loop = False
+						self.main_loop = False
 					else:
 						self.currentLevel = self.levels[self.currentLevelNumber]
 						self.currentLevelNumber += 1
@@ -370,10 +440,10 @@ class GamePlay():
 			#Jesli zostalo 0 zyc, to funkcja informuje o koncu gry			
 			if self.character.lives == 0:
 				self.utils.gameOver(self.currentLevel, self.screen, self.character)
-				self.menu_loop = False
+				self.main_loop = False
 			
 			# in case of end-game
-			if self.menu_loop == False:
+			if self.main_loop == False:
 				break
 				
 			self.screen.fill(globvar.BACKGROUND_FILL)
@@ -408,97 +478,59 @@ class GamePlay():
 			pygame.display.update()
 			#pygame.display.flip()
 				
-	# level choice submenu
-	def chooseLevel(self):
-		# add numbers of all available levels (no level names for now)
-		level_numbers = []
-		for i in range (0, self.max_levels):
-			level_numbers.append(str(i + 1))
-		
-		# initialize and display a submenu	
-		menu_label = menuItem.MenuItem('Levels', None, 50, globvar.MENU_LABEL, 0, 0)
-		pos_x = (self.scr_width / 2) - (menu_label.width / 2)
-		pos_y = 120
-		menu_label.set_position(pos_x, pos_y)
-		self.initMenu(pygame.time.Clock(), None, 40, globvar.MENU_DEFAULT, level_numbers, True, 2, menu_label)	
-		self.menuLoop()
-	
-	# settings submenu
-	def settings(self):
-		# initialize and display a submenu	
-		menu_label = menuItem.MenuItem('Settings', None, 50, globvar.MENU_LABEL, 0, 0)
-		pos_x = (self.scr_width / 2) - (menu_label.width / 2)
-		pos_y = 120
-		menu_label.set_position(pos_x, pos_y)
-		
-		self.initMenu(pygame.time.Clock(), None, 40, globvar.MENU_DEFAULT, ['Toggle sound', 'Sound volume', 'Controls'], True, 3, menu_label)	
-		self.menuLoop()
 
-	# customize controls
-	def controls(self):
-		# initialize and display a submenu	
-		menu_label = menuItem.MenuItem('Controls', None, 50, globvar.MENU_LABEL, 0, 0)
-		pos_x = (self.scr_width / 2) - (menu_label.width / 2)
-		pos_y = 120
-		menu_label.set_position(pos_x, pos_y)
-		
-		self.initMenu(pygame.time.Clock(), None, 40, globvar.MENU_DEFAULT, ['Left' + ' [ ' + pygame.key.name(self.left) + ' ]' , 'Right' + ' [ ' + pygame.key.name(self.right) + ' ]', 'Jump' + ' [ ' + pygame.key.name(self.jump) + ' ]'], True, 4, menu_label)	
-		self.menuLoop()
 
 	# check if sound is enabled
 	def isSound(self):
 		return self.game_music.isSound()
 		
+
 	# set sound
 	def setSound(self, is_sound):
 		self.game_music.setSound(is_sound)
+
 		
 	# toggle sound
-	def toggleSound(self):
+	def toggleSound(self, menu):
 		self.setSound(not self.isSound())
-		self.items[self.pos_volume].set_active(self.isSound())
-		self.items[self.pos_toggle].set_text('Toggle sound' + ' ' + ('(Off)' if self.isSound() else '(On)'))	
+		menu.items[globvar.SOUND].set_active(self.isSound())
+		menu.items[globvar.TOGGLE].set_text('Toggle sound' + ' ' + ('(Off)' if self.isSound() else '(On)'))	
+
 			
 	# play a given sound
 	def playSound(self, key):
 		self.game_music.playSound(key)
+
 	
 	# show how the key is entered
-	def updateText(self, text):
+	def updateText(self, menu, text):
 		if text.startswith('Left'):
-			self.items[0].set_text('Left <SELECT KEY>')
+			menu.items[0].set_text('Left <SELECT KEY>')
 		elif text.startswith('Right'):
-			self.items[1].set_text('Right <SELECT KEY>')
+			menu.items[1].set_text('Right <SELECT KEY>')
 		else:
-			self.items[2].set_text('Jump <SELECT KEY>')
+			menu.items[2].set_text('Jump <SELECT KEY>')
 	
+
 	# change selected key
-	def changeKey(self, text, current_key):
+	def changeKey(self, menu, text, current_key):
 		if text.startswith('Left'):
-			self.items[0].set_text('Left' + ' [ ' + pygame.key.name(current_key) + ' ]')
+			menu.items[0].set_text('Left' + ' [ ' + pygame.key.name(current_key) + ' ]')
 			self.left = current_key
 		elif text.startswith('Right'):
-			self.items[1].set_text('Right' + ' [ ' + pygame.key.name(current_key) + ' ]')
+			menu.items[1].set_text('Right' + ' [ ' + pygame.key.name(current_key) + ' ]')
 			self.right = current_key
 		else:
-			self.items[2].set_text('Jump' + ' [ ' + pygame.key.name(current_key) + ' ]')
+			menu.items[2].set_text('Jump' + ' [ ' + pygame.key.name(current_key) + ' ]')
 			self.jump = current_key
 
+
     # reset control text
-	def resetText(self, text):
+	def resetText(self, menu, text):
 		if text.startswith('Left'):
-			self.items[0].set_text('Left' + ' [ ' + pygame.key.name(self.left) + ' ]')
+			menu.items[0].set_text('Left' + ' [ ' + pygame.key.name(self.left) + ' ]')
 		elif text.startswith('Right'):
-			self.items[1].set_text('Right' + ' [ ' + pygame.key.name(self.right) + ' ]')
+			menu.items[1].set_text('Right' + ' [ ' + pygame.key.name(self.right) + ' ]')
 		else:
-			self.items[2].set_text('Jump' + ' [ ' + pygame.key.name(self.jump) + ' ]')
+			menu.items[2].set_text('Jump' + ' [ ' + pygame.key.name(self.jump) + ' ]')
 	
-	def volume(self):
-		menu_label = menuItem.MenuItem('Customize sound volume', None, 50, globvar.MENU_LABEL, 0, 0)
-		pos_x = (self.scr_width / 2) - (menu_label.width / 2)
-		pos_y = 120
-		menu_label.set_position(pos_x, pos_y)
-		self.initVolMenu(pygame.time.Clock(), True, 5, menu_label)
-		self.volMenuLoop()
-	    
-    

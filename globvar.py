@@ -25,11 +25,20 @@ MENU_VOL_HEIGHT = 20
 MENU_VOL_NO = 10
 MENU_SPACE_BETWEEN = 15
 
+# menu label height
+MENU_LABEL_Y = 120
+
 # screen size
 SCREEN_WIDTH = 1024
 SCREEN_HEIGHT = 768
 PLAYER_SIZE = 60
 
+# hardcoded positions
+TOGGLE = 0
+SOUND = 1
+
+# number of levels
+LEVEL_NO = 2
 
 # player stride
 STRIDE = 7
