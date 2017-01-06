@@ -6,7 +6,6 @@ class GameMenu(object):
 		self.menu_loop = True
 		self.change_keys = False
 		self.current_item = None
-		self.is_reset = False
 		self.items = []
         
 	

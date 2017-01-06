@@ -32,21 +32,24 @@ class GamePlay(object):
 	# create game menu
 	def populateMenuTree(self):
 		self.menu_tree['main'] = gameMenu.GameMenu()
+		self.menu_tree['main_game'] = gameMenu.GameMenu()
 		self.menu_tree['settings'] = gameMenu.GameMenu()
 		self.menu_tree['levels'] = gameMenu.GameMenu()
 		self.menu_tree['controls'] = gameMenu.GameMenu()
 		self.menu_tree['sound'] = gameMenu.GameMenu()
 		
 		self.menu_tree['main'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Start', 'Choose level', 'Settings', 'Quit'], True, 'main')
+		self.menu_tree['main_game'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Resume', 'Settings', 'Quit'], False, 'main_game')
 		self.menu_tree['settings'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Toggle sound', 'Sound volume', 'Controls'], True, 'settings', self.getMenuLabel('Settings'))
 		self.menu_tree['levels'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, self.getLevels(), True, 'levels', self.getMenuLabel('Choose level'))
 		self.menu_tree['controls'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Left' + ' [ ' + pygame.key.name(self.left) + ' ]' , 'Right' + ' [ ' + pygame.key.name(self.right) + ' ]', 'Jump' + ' [ ' + pygame.key.name(self.jump) + ' ]'], True, 'controls', self.getMenuLabel('Customize controls'))
 		self.menu_tree['sound'].initVolMenu(self.scr_width, self.scr_height, self.game_music, 'sound', self.getMenuLabel('Customize sound volume'))
-	
+		
 	
 	# set function dictionary
 	def setFunDict(self):
 		self.fun_dict['main'] = self.setKeySelectionMain
+		self.fun_dict['main_game'] = self.setKeySelectionMain
 		self.fun_dict['settings'] = self.setKeySelectionSettings
 		self.fun_dict['levels'] = self.setKeySelectionLevels
 		self.fun_dict['controls'] = self.setKeySelectionControls
@@ -146,6 +149,15 @@ class GamePlay(object):
 				self.menuLoop(self.menu_tree['levels'])
 			elif text == 'Quit':
 				sys.exit()
+			elif text == 'Resume':
+				menu.current_item = 0
+				menu.menu_loop = False
+		
+		# resume game logic
+		if key == pygame.K_ESCAPE and not menu.start_menu:
+			menu.current_item = 0
+			menu.menu_loop = False
+			
 
 	
 	# process settings menu events
@@ -229,6 +241,8 @@ class GamePlay(object):
 			self.main_loop = True
 			menu.current_item = 0
 			self.initGame(pygame.font.SysFont("comicsansms", 40), "Mario", player.Player(self.player_positions[text], globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), int(text))
+			# a little trick to reset main menu after gameplay 
+			self.setKeySelectionMain(self.menu_tree['main'], pygame.K_UP) 
 		# escape key allows the user to go level up in menu
 		if key == pygame.K_ESCAPE:
 			menu.menu_loop = False
@@ -392,7 +406,9 @@ class GamePlay(object):
 					elif event.key == self.jump:
 						self.character.jump()
 						self.playSound('jump')
-					#elif key == pygame.K_ESCAPE:
+					elif event.key == pygame.K_ESCAPE:
+						self.menu_tree['main_game'].menu_loop = True
+						self.menuLoop(self.menu_tree['main_game'])
 						
 				# on key release
 				if event.type == pygame.KEYUP:
@@ -449,6 +465,7 @@ class GamePlay(object):
 			
 			# in case of end-game
 			if self.main_loop == False:
+				#self.menu_tree['main'].current_item = 0
 				break
 				
 			self.screen.fill(globvar.BACKGROUND_FILL)
