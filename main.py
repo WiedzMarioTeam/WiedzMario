@@ -2,6 +2,8 @@
 import pygame, player, globvar, gamePlay  
  
 def main():
+
+	pygame.mixer.pre_init(44100, -16, 1, 512)
 	# initialize pygame
 	pygame.init()
 	
