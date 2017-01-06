@@ -85,7 +85,7 @@ class Player(pygame.sprite.Sprite):
 		else:
 			self.change_y += 0.30
  
-	def jump(self):
+	def jump(self, soundProvider):
         # check if the player is standing on a platform
 		self.rect.y += 1
 		platform_hit_list = pygame.sprite.spritecollide(self, self.level.platformsSet.platforms, False)
@@ -93,7 +93,10 @@ class Player(pygame.sprite.Sprite):
  
         # if so, jump
 		if len(platform_hit_list) > 0:
-			self.change_y = -11
+			for col in platform_hit_list:
+				if self.rect.bottom == col.rect.top:
+					soundProvider.playSound('jump')
+					self.change_y = -11
  
     # update next movement depending on user's actions    
 	def move_left(self):

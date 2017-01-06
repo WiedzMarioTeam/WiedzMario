@@ -404,8 +404,7 @@ class GamePlay(object):
 					elif event.key == self.right:
 						self.character.move_right()
 					elif event.key == self.jump:
-						self.character.jump()
-						self.playSound('jump')
+						self.character.jump(self.game_music)
 					elif event.key == pygame.K_ESCAPE:
 						self.menu_tree['main_game'].menu_loop = True
 						self.menuLoop(self.menu_tree['main_game'])
