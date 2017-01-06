@@ -140,7 +140,7 @@ class GamePlay(object):
 			text = menu.items[menu.current_item].text
 			if text == 'Start':
 				self.main_loop = True
-				self.initGame(pygame.font.SysFont("comicsansms", 40), "Mario", player.Player(self.player_positions['1'], globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), 1)
+				self.initGame(pygame.font.SysFont("comicsansms", 40), player.Player(self.player_positions['1'], globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), 1)
 			elif text == 'Settings':
 				self.menu_tree['settings'].menu_loop = True
 				self.menuLoop(self.menu_tree['settings'])
@@ -240,7 +240,7 @@ class GamePlay(object):
 			menu.menu_loop = False
 			self.main_loop = True
 			menu.current_item = 0
-			self.initGame(pygame.font.SysFont("comicsansms", 40), "Mario", player.Player(self.player_positions[text], globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), int(text))
+			self.initGame(pygame.font.SysFont("comicsansms", 40), player.Player(self.player_positions[text], globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), int(text))
 			# a little trick to reset main menu after gameplay 
 			self.setKeySelectionMain(self.menu_tree['main'], pygame.K_UP) 
 		# escape key allows the user to go level up in menu
@@ -347,7 +347,7 @@ class GamePlay(object):
     
 	
 	# initialization of the actual gameplay
-	def initGame(self, font, caption, character, clock, current_level_no):
+	def initGame(self, font, character, clock, current_level_no):
 		self.font = font
 		# set the player character
 		self.character = character
