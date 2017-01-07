@@ -8,7 +8,11 @@ class GamePlay(object):
 		self.max_levels = globvar.LEVEL_NO
 		self.player_positions = {'1': (100, 1300), '2': (100, 650)}
 		# object handling class music
-		self.game_music = gameMusic.GameMusic(2, {'jump': 'sfx/jump.wav'})
+		self.game_music = gameMusic.GameMusic(2, {'jump': 'sfx/jump.wav',
+                                                  'enemy_death': 'sfx/death1.wav',
+                                                  'player_death': 'sfx/death2.wav',
+                                                  'gameover': 'sfx/gameover.wav',
+                                                  'win': 'sfx/win.wav'})
 		# control keys
 		self.jump = pygame.K_SPACE
 		self.left = pygame.K_LEFT
@@ -423,7 +427,7 @@ class GamePlay(object):
 			#Aktualizujemy kamere
 			self.camera.update(self.character)
 	 
-			self.character.checkCollisionsWithEnemies()
+			self.character.checkCollisionsWithEnemies(self.game_music)
 
 			# Sprawdzamy, czy zebrano jakas gwiazdke		
 			self.character.checkCollisionsWithStars()
@@ -437,6 +441,7 @@ class GamePlay(object):
 						scoreText=self.font.render("Score:"+str(self.character.score), 1,(255,255,0))
 						self.screen.blit(scoreText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT + text_height + 20)/2))	
 						pygame.display.update()
+						self.playSound('win')
 						pygame.time.delay(3000)
 						self.main_loop = False
 					else:
@@ -459,6 +464,7 @@ class GamePlay(object):
 				
 			#Jesli zostalo 0 zyc, to funkcja informuje o koncu gry			
 			if self.character.lives == 0:
+				self.playSound('gameover')
 				self.utils.gameOver(self.currentLevel, self.screen, self.character)
 				self.main_loop = False
 			

@@ -108,13 +108,15 @@ class Player(pygame.sprite.Sprite):
 	def stop(self):
 		self.change_x = 0
 
-	def checkCollisionsWithEnemies(self):
+	def checkCollisionsWithEnemies(self, gameMusic):
 		for enemy in self.level.enemiesSet.enemies:
 			if self.rect.colliderect(enemy.rect):
 				if self.lastBottomPossition <= enemy.rect.top + enemy.speed_y:
 					self.level.enemiesSet.enemies.remove(enemy)
 					self.score = self.score + enemy.pointsForKill
+					gameMusic.playSound('enemy_death')
 				else:
+					gameMusic.playSound('player_death')
 					return self.lifeLost()
 		return False
 					
