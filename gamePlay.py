@@ -190,11 +190,17 @@ class GamePlay(object):
 			menu.items[menu.current_item].set_font_color(globvar.MENU_ACTIVE)
 		else:
 			if key == pygame.K_UP and menu.current_item > 0:
-				menu.current_item -= 1
+				if menu.items[menu.current_item].text == 'Controls' and not self.isSound():
+					menu.current_item -= 2
+				else:
+					menu.current_item -= 1
 			elif key == pygame.K_UP and menu.current_item == 0:
 				menu.current_item = len(menu.items) - 1
 			elif key == pygame.K_DOWN and menu.current_item < len(menu.items) - 1:
-				menu.current_item += 1
+				if menu.items[menu.current_item].text == 'Toggle sound (On)':
+					menu.current_item += 2
+				else:
+					menu.current_item += 1
 			elif key == pygame.K_DOWN and menu.current_item == len(menu.items) - 1:
 				menu.current_item = 0
  
