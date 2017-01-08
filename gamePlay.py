@@ -43,7 +43,7 @@ class GamePlay(object):
 		self.menu_tree['sound'] = gameMenu.GameMenu()
 		
 		self.menu_tree['main'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Start', 'Choose level', 'Settings', 'Quit'], True, 'main')
-		self.menu_tree['main_game'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Resume', 'Settings', 'Quit'], False, 'main_game')
+		self.menu_tree['main_game'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Resume', 'Settings', 'Return to main menu', 'Quit'], False, 'main_game')
 		self.menu_tree['settings'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Toggle sound', 'Sound volume', 'Controls'], True, 'settings', self.getMenuLabel('Settings'))
 		self.menu_tree['levels'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, self.getLevels(), True, 'levels', self.getMenuLabel('Choose level'))
 		self.menu_tree['controls'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Left' + ' [ ' + pygame.key.name(self.left) + ' ]' , 'Right' + ' [ ' + pygame.key.name(self.right) + ' ]', 'Jump' + ' [ ' + pygame.key.name(self.jump) + ' ]'], True, 'controls', self.getMenuLabel('Customize controls'), self.left, self.right, self.jump)
@@ -164,6 +164,9 @@ class GamePlay(object):
 			elif text == 'Resume':
 				menu.current_item = 0
 				menu.menu_loop = False
+			elif text == 'Return to main menu':
+				menu.menu_loop = False
+				self.main_loop = False
 		
 		# resume game logic
 		if key == pygame.K_ESCAPE and not menu.start_menu:
@@ -325,7 +328,7 @@ class GamePlay(object):
 			menu.change_keys = False
 			key = None
 			self.setKeySelectionControls(menu, key)
- 
+
         # check if any menu button was "pressed"
 		if key == pygame.K_RETURN and not menu.change_keys:
 			menu.menu_loop = True
@@ -514,6 +517,7 @@ class GamePlay(object):
 			if self.character.rect.left < 0:
 				self.character.rect.left = 0
 			if self.character.rect.bottom > self.currentLevel.height:
+				self.game_music.playSound('player_death')
 				self.character.lifeLost()
 				
 			#Jesli zostalo 0 zyc, to funkcja informuje o koncu gry			
