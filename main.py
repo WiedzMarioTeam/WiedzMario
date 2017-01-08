@@ -1,27 +1,17 @@
 # use pygame
-import pygame
+import pygame, player, globvar, gamePlay  
+ 
+def main():
 
-# screen size
-SCREEN_WIDTH = 1024
-SCREEN_HEIGHT = 768
+	pygame.mixer.pre_init(44100, -16, 1, 512)
+	# initialize pygame
+	pygame.init()
+	
+	# initialize main game & menu loop logic
+	currentGamePlay = gamePlay.GamePlay()
+ 
+	pygame.quit()
+ 
+if __name__ == "__main__":
+    main()
 
-# initialize pygame
-pygame.init()
-
-# create the game screen
-screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
-
-# set the window title
-pygame.display.set_caption('WiedzMario')
-
-exit_clicked = False
-
-# the event loop
-while not exit_clicked:
-	# process game events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            exit_clicked = True
-
-# after (x) button is clicked
-pygame.quit()
