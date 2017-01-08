@@ -46,7 +46,7 @@ class GamePlay(object):
 		self.menu_tree['main_game'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Resume', 'Settings', 'Quit'], False, 'main_game')
 		self.menu_tree['settings'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Toggle sound', 'Sound volume', 'Controls'], True, 'settings', self.getMenuLabel('Settings'))
 		self.menu_tree['levels'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, self.getLevels(), True, 'levels', self.getMenuLabel('Choose level'))
-		self.menu_tree['controls'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Left' + ' [ ' + pygame.key.name(self.left) + ' ]' , 'Right' + ' [ ' + pygame.key.name(self.right) + ' ]', 'Jump' + ' [ ' + pygame.key.name(self.jump) + ' ]'], True, 'controls', self.getMenuLabel('Customize controls'))
+		self.menu_tree['controls'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Left' + ' [ ' + pygame.key.name(self.left) + ' ]' , 'Right' + ' [ ' + pygame.key.name(self.right) + ' ]', 'Jump' + ' [ ' + pygame.key.name(self.jump) + ' ]'], True, 'controls', self.getMenuLabel('Customize controls'), self.left, self.right, self.jump)
 		self.menu_tree['sound'].initVolMenu(self.scr_width, self.scr_height, self.game_music, 'sound', self.getMenuLabel('Customize sound volume'))
 		
 	
@@ -98,11 +98,19 @@ class GamePlay(object):
 				
 				if menu.menu_label is not None:
 					self.screen.blit(menu.menu_label.label, menu.menu_label.position)
+				
+				if menu.save_sound or menu.is_error:
+					self.screen.blit(menu.menu_label_save.label, menu.menu_label_save.position)
+				if menu.is_saved:
+					self.screen.blit(menu.menu_label_saved.label, menu.menu_label_saved.position)	
  
 				# display menu positons depending on their type
 				if menu.menu_name == 'sound':
 					for item in menu.items:
-						self.screen.blit(item.image, item.position)
+						if isinstance(item, volMenuItem.VolMenuItem):
+							self.screen.blit(item.image, item.position)
+						else:
+							self.screen.blit(item.label, item.position)
 				else:
 					for item in menu.items:
 						self.screen.blit(item.label, item.position)
@@ -177,7 +185,7 @@ class GamePlay(object):
 		if menu.current_item is None:
 			menu.current_item = 0
 			menu.items[menu.current_item].set_font_color(globvar.MENU_ACTIVE)
-		else:	
+		else:
 			if key == pygame.K_UP and menu.current_item > 0:
 				menu.current_item -= 1
 			elif key == pygame.K_UP and menu.current_item == 0:
@@ -258,16 +266,22 @@ class GamePlay(object):
 		for item in menu.items:
 			item.set_bold(False)
 			# reset all active items
-			if item.is_active():
-				item.set_font_color(globvar.MENU_DEFAULT)
+			if item.is_active and item.text == 'Apply the change(s)':
+				item.set_font_color(globvar.MENU_SAVE)
 			else:
-				item.set_font_color(globvar.MENU_INACTIVE)
+				item.set_font_color(globvar.MENU_DEFAULT)
 		
 		if menu.current_item is None:
 			menu.current_item = 0
 			menu.items[menu.current_item].set_font_color(globvar.MENU_ACTIVE)
-		else:	
-			if key == pygame.K_UP and menu.current_item > 0:
+		elif not menu.change_keys:
+			# reset the error message
+			if key == pygame.K_UP or key == pygame.K_DOWN and menu.is_error:
+				menu.is_error = False
+			# reset the save message
+			if key == pygame.K_UP or key == pygame.K_DOWN and menu.is_saved:
+				menu.is_saved = False
+ 			if key == pygame.K_UP and menu.current_item > 0:
 				menu.current_item -= 1
 			elif key == pygame.K_UP and menu.current_item == 0:
 				menu.current_item = len(menu.items) - 1
@@ -275,17 +289,18 @@ class GamePlay(object):
 				menu.current_item += 1
 			elif key == pygame.K_DOWN and menu.current_item == len(menu.items) - 1:
 				menu.current_item = 0
- 
+
 		# highlight the selected item
 		menu.items[menu.current_item].set_bold(True)
 		menu.items[menu.current_item].set_font_color(globvar.MENU_ACTIVE)
 		
 		# show which item is being modified
 		if menu.change_keys:
+			menu.is_saved = False
 			menu.items[menu.current_item].set_font_color(globvar.MENU_CHANGE)
 		else:
 			menu.items[menu.current_item].set_font_color(globvar.MENU_ACTIVE)
-		
+			
 		# check if control change is to be performed
 		if menu.change_keys and key == pygame.K_ESCAPE:
 			text = menu.items[menu.current_item].text
@@ -296,6 +311,17 @@ class GamePlay(object):
 		elif menu.change_keys and key != pygame.K_RETURN:
 			text = menu.items[menu.current_item].text
 			self.changeKey(menu, text, key)
+			if menu.tmp_left != self.left or menu.tmp_right != self.right or menu.tmp_jump != self.jump:
+				# detect duplicate key assignment
+				if len([menu.tmp_left, menu.tmp_right, menu.tmp_jump]) != len(set([menu.tmp_left, menu.tmp_right, menu.tmp_jump])):
+					menu.is_error = True
+					self.resetAllText(menu)
+					menu.current_item = 0
+				elif not menu.pending_change:
+					self.enableSaveKeys(menu)
+			elif menu.pending_change:
+				self.removeApply(menu)
+				menu.pending_change = False
 			menu.change_keys = False
 			key = None
 			self.setKeySelectionControls(menu, key)
@@ -308,47 +334,75 @@ class GamePlay(object):
 				menu.change_keys = True
 				self.updateText(menu, text)
 				self.setKeySelectionControls(menu, key)
+			# save changes
+			if text == 'Apply the change(s)':
+				self.saveChanges(menu)
+				self.resetAllText(menu)
+				self.removeApply(menu)
+				menu.is_saved = True
+				menu.pending_change = False
+				self.setKeySelectionControls(menu, None)
 		
 		# escape key allows the user to go level up in menu
 		if key == pygame.K_ESCAPE:
+			self.resetAllText(menu)
+			if menu.pending_change:
+				self.removeApply(menu)
 			menu.menu_loop = False
+			menu.is_saved = False
+			menu.is_error = False
 			menu.current_item = 0
     
 	
 	# process volume customization menu
 	def setKeySelectionSound(self, menu, key):
 		if menu.current_item is None:
-			if key == pygame.K_LEFT and self.game_music.sound_level == 0:
+			if key == pygame.K_LEFT and menu.tmp_sound == 0:
 				menu.current_item = 0
-			elif key == pygame.K_LEFT and self.game_music.sound_level > 0:
-				menu.current_item = self.game_music.sound_level - 1
-				self.game_music.sound_level -= 1
-			elif key == pygame.K_RIGHT and self.game_music.sound_level < globvar.MENU_VOL_NO-1:
-				menu.current_item = self.game_music.sound_level + 1
-				self.game_music.sound_level += 1
-			elif key == pygame.K_RIGHT and self.game_music.sound_level == globvar.MENU_VOL_NO-1:
+			elif key == pygame.K_LEFT and menu.tmp_sound > 0:
+				menu.current_item = menu.tmp_sound - 1
+				menu.tmp_sound -= 1
+			elif key == pygame.K_RIGHT and menu.tmp_sound < globvar.MENU_VOL_NO - 1:
+				menu.current_item = menu.tmp_sound + 1
+				menu.tmp_sound += 1
+			elif key == pygame.K_RIGHT and menu.tmp_sound == globvar.MENU_VOL_NO - 1:
 				menu.current_item = globvar.MENU_VOL_NO -1
 		else:
+			menu.is_saved = False
 			if key == pygame.K_LEFT and menu.current_item == 0:
 				menu.current_item = 0
 			elif key == pygame.K_LEFT and menu.current_item > 0:
 				menu.current_item -= 1
-				self.game_music.sound_level -= 1
-			elif key == pygame.K_RIGHT and menu.current_item < globvar.MENU_VOL_NO-1:
+				menu.tmp_sound -= 1
+			elif key == pygame.K_RIGHT and menu.current_item < globvar.MENU_VOL_NO - 1:
 				menu.current_item += 1
-				self.game_music.sound_level += 1
-			elif key == pygame.K_RIGHT and menu.current_item == globvar.MENU_VOL_NO-1:
+				menu.tmp_sound += 1
+			elif key == pygame.K_RIGHT and menu.current_item == globvar.MENU_VOL_NO - 1:
 				menu.current_item = globvar.MENU_VOL_NO -1
-			elif key == pygame.K_ESCAPE:
+			elif key == pygame.K_DOWN and menu.pending_change:
+				menu.current_item = globvar.MENU_VOL_NO
+		
+		# escape key allows the user to go level up in menu
+		if key == pygame.K_ESCAPE:
+				self.resetSoundMenu(menu)
 				menu.menu_loop = False
+				
+		if menu.tmp_sound != self.game_music.sound_level:
+			menu.save_sound = True
+		elif menu.save_sound and menu.tmp_sound == self.game_music.sound_level:
+			menu.save_sound = False
+		
+		# save new sound settings
+		if menu.save_sound and key == pygame.K_RETURN:
+			self.saveSound(menu)
 				
 		for item in menu.items:
 			# set color based on current volume
-			if item.value <= self.game_music.sound_level:
+			if item.value <= menu.tmp_sound:
 				item.set_color(globvar.MENU_DEFAULT)
 			else:
 				item.set_color(globvar.MENU_INACTIVE)
-    
+		
 	
 	# initialization of the actual gameplay
 	def initGame(self, font, character, clock, current_level_no):
@@ -470,7 +524,6 @@ class GamePlay(object):
 			
 			# in case of end-game
 			if self.main_loop == False:
-				#self.menu_tree['main'].current_item = 0
 				break
 				
 			self.screen.fill(globvar.BACKGROUND_FILL)
@@ -543,13 +596,23 @@ class GamePlay(object):
 	def changeKey(self, menu, text, current_key):
 		if text.startswith('Left'):
 			menu.items[0].set_text('Left' + ' [ ' + pygame.key.name(current_key) + ' ]')
-			self.left = current_key
+			#self.left = current_key
+			menu.tmp_left = current_key
 		elif text.startswith('Right'):
 			menu.items[1].set_text('Right' + ' [ ' + pygame.key.name(current_key) + ' ]')
-			self.right = current_key
+			#self.right = current_key
+			menu.tmp_right = current_key
 		else:
 			menu.items[2].set_text('Jump' + ' [ ' + pygame.key.name(current_key) + ' ]')
-			self.jump = current_key
+			#self.jump = current_key
+			menu.tmp_jump = current_key
+
+
+	# change selected key
+	def saveChanges(self, menu):
+			self.left = menu.tmp_left
+			self.right = menu.tmp_right
+			self.jump = menu.tmp_jump
 
 
     # reset control text
@@ -560,4 +623,42 @@ class GamePlay(object):
 			menu.items[1].set_text('Right' + ' [ ' + pygame.key.name(self.right) + ' ]')
 		else:
 			menu.items[2].set_text('Jump' + ' [ ' + pygame.key.name(self.jump) + ' ]')
+			
+			
+	# reset all texts
+	def resetAllText(self, menu):
+			menu.tmp_left = self.left
+			menu.tmp_right = self.right
+			menu.tmp_jump = self.jump
+			menu.items[0].set_text('Left' + ' [ ' + pygame.key.name(self.left) + ' ]')
+			menu.items[1].set_text('Right' + ' [ ' + pygame.key.name(self.right) + ' ]')
+			menu.items[2].set_text('Jump' + ' [ ' + pygame.key.name(self.jump) + ' ]')
+
 	
+	# def remove apply button
+	def removeApply(self, menu):
+		menu.items.pop()
+		menu.current_item = None
+	
+	
+	# make it possible to save settings
+	def enableSaveKeys(self, menu):
+		menu_item = menuItem.MenuItem('Apply the change(s)', None, 40, globvar.MENU_SAVE, 0, 0)
+		pos_x = (self.scr_width / 2) - (menu_item.width / 2)
+		block_height = (len(menu.items)) * menu_item.height
+		pos_y = (self.scr_height / 2) - (block_height / 2) + ((len(menu.items)) * 2) + (len(menu.items)) * menu_item.height
+		menu_item.set_position(pos_x, pos_y)
+		menu.items.append(menu_item)
+		menu.pending_change = True
+
+	
+	# save sound value
+	def saveSound(self, menu):
+		self.game_music.sound_level = menu.tmp_sound
+		menu.save_sound = False
+		menu.is_saved = True
+		
+	# reset sound menu
+	def resetSoundMenu(self, menu):
+		menu.tmp_sound = self.game_music.sound_level
+		menu.save_sound = False
