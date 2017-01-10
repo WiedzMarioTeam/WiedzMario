@@ -1,4 +1,4 @@
-import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, utilsSet, cameraModule, menuItem, volMenuItem, gameMusic, gameMenu, sys
+import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, levelExitCastle, utilsSet, cameraModule, menuItem, volMenuItem, gameMusic, gameMenu, sys
 
 class GamePlay(object):
 	# set basic game settings
@@ -428,13 +428,15 @@ class GamePlay(object):
 		level_1.platformsSet = platformsSets.PlatformSet1(self.character)
 		level_1.starsSet = starsSets.StarsSet1(self.character)	
 		level_1.enemiesSet = enemiesSets.EnemiesSet1(self.character, level_1)
-		level_1.levelExit = levelExit.LevelExit(950,598)
-		
+		level_1.levelExit = levelExit.LevelExit(1015, 688)
+		level_1.levelExitCastle = levelExitCastle.LevelExitCastle(830, 378)
+
 		level_2 = Level.Level(3000, 1000, 100, 650)
 		level_2.platformsSet = platformsSets.PlatformSet2(self.character)
 		level_2.starsSet = starsSets.StarsSet2(self.character)	
 		level_2.enemiesSet = enemiesSets.EnemiesSet2(self.character, level_2)
-		level_2.levelExit = levelExit.LevelExit(950,598)	
+		level_2.levelExit = levelExit.LevelExit(835, 688)
+		level_2.levelExitCastle = levelExitCastle.LevelExitCastle(650, 376)
 		
 		self.levels = [level_1, level_2]
 		
@@ -540,6 +542,8 @@ class GamePlay(object):
 
 			
 			for e in self.currentLevel.platformsSet.platforms:
+				self.screen.blit(e.image, self.camera.apply(e))
+			for e in self.currentLevel.levelExitCastle.castle:
 				self.screen.blit(e.image, self.camera.apply(e))
 			for e in self.currentLevel.starsSet.stars:
 				self.screen.blit(e.image, self.camera.apply(e))
