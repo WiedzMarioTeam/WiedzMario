@@ -1,15 +1,15 @@
-import pygame, globvar
+import pygame, globvar, enemy1Animation
  
 # Podstawowa klasa reprezentujaca przeciwnika
 class BaseEnemy(pygame.sprite.Sprite):
 	# constructor allowing to set positon, size and color of the player
-	def __init__(self, pos_x, pos_y, size, min_x, max_x, min_y, max_y, speed_x, speed_y, level, pointsForKill, fill_color):
+	def __init__(self, pos_x, pos_y, sizeWidth, sizeHeight, min_x, max_x, min_y, max_y, speed_x, speed_y, level, pointsForKill, animation):
 		# call the parent constructor
 		pygame.sprite.Sprite.__init__(self) 
 			
 		# set Enemy size
-		self.image = pygame.Surface([size, size])
-		self.image.fill(fill_color)
+		self.image = pygame.Surface([sizeWidth, sizeHeight])
+		self.animations = animation
 	 
 		# pozycja startowa przeciwnika
 		self.rect = self.image.get_rect()
@@ -39,6 +39,11 @@ class BaseEnemy(pygame.sprite.Sprite):
 		
 		#punkty za zabicie wroga
 		self.pointsForKill = pointsForKill
+		
+		#animacja roga
+		self.current_img = 0
+		self.ticksFromLastChange = 0
+		self.flipImage = 0
 		
 		
 	def moveEnemy(self):
@@ -95,7 +100,28 @@ class BaseEnemy(pygame.sprite.Sprite):
 				self.rect.bottom = col.rect.top				
 				# reset vertical movement indicator only if we found conflict while moving down
 				self.change_y = 0	
- 
+				
+		if self.change_x == 0:
+			self.ticksFromLastChange = 0
+			self.current_img = 0
+			if self.flipImage:
+				self.image = pygame.transform.flip(self.animations.imageEnemyWalk[self.current_img], True, False)
+			else:
+				self.image = self.animations.imageEnemyWalk[0]
+			
+		else:
+			self.ticksFromLastChange += 1
+			self.ticksFromLastChange = self.ticksFromLastChange % (globvar.TICK/len(self.animations.imageEnemyWalk)/2)
+		if self.ticksFromLastChange == 0:
+				self.current_img += 1
+				self.current_img = self.current_img % len(self.animations.imageEnemyWalk)
+				if self.change_x < 0:
+					self.image = pygame.transform.flip(self.animations.imageEnemyWalk[self.current_img], True, False)
+					self.flipImage = True
+				else:
+					self.image = self.animations.imageEnemyWalk[self.current_img]
+					self.flipImage = False
+
 	# compute gravity
 	def update_gravity(self):
 		# we don't want the player to be stuck under a platform
