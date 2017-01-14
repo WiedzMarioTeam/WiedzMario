@@ -1,4 +1,4 @@
-import pygame, globvar, enemy1Animation
+import pygame, globvar, enemy1Animation, enemy2Animation
  
 # Podstawowa klasa reprezentujaca przeciwnika
 class BaseEnemy(pygame.sprite.Sprite):
