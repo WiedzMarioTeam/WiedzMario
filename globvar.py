@@ -35,7 +35,11 @@ MENU_LABEL_Y = 120
 # screen size
 SCREEN_WIDTH = 1024
 SCREEN_HEIGHT = 768
-PLAYER_SIZE = 60
+PLAYER_WIDTH = 68
+PLAYER_HEIGHT = 90
+
+#dlugosc cyklu skoku w tickach
+JUMP_CYCLE = 1240
 
 # hardcoded positions
 TOGGLE = 0

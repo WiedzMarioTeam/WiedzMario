@@ -152,7 +152,7 @@ class GamePlay(object):
 			text = menu.items[menu.current_item].text
 			if text == 'Start':
 				self.main_loop = True
-				self.initGame(pygame.font.SysFont("comicsansms", 40), player.Player(self.player_positions['1'], globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), 1)
+				self.initGame(pygame.font.SysFont("comicsansms", 40), player.Player(self.player_positions['1']), pygame.time.Clock(), 1)
 			elif text == 'Settings':
 				self.menu_tree['settings'].menu_loop = True
 				self.menuLoop(self.menu_tree['settings'])
