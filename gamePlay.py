@@ -448,7 +448,7 @@ class GamePlay(object):
 		
 		self.camera = cameraModule.Camera(cameraModule.complex_camera, self.currentLevel.width, self.currentLevel.height)
 		self.currentLevel.timeStart = time.time()
-
+		self.character.jumpStart = time.time()
 		self.gameLoop()
 		
 	
