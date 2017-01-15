@@ -427,20 +427,8 @@ class GamePlay(object):
 		self.currentLevelNumber = current_level_no
 		self.levels = None
 		# tworzymy obiekty dla kolejnych poziomow
-		level_1 = Level.Level(2000, 1600, 100, 1300)
-		level_1.platformsSet = platformsSets.PlatformSet1(self.character)
-		level_1.starsSet = starsSets.StarsSet1(self.character)	
-		level_1.enemiesSet = enemiesSets.EnemiesSet1(self.character, level_1)
-		level_1.levelExit = levelExit.LevelExit(1015, 688)
-		level_1.levelExitCastle = levelExitCastle.LevelExitCastle(830, 378)
-
-		level_2 = Level.Level(3000, 1000, 100, 650)
-		level_2.platformsSet = platformsSets.PlatformSet2(self.character)
-		level_2.starsSet = starsSets.StarsSet2(self.character)	
-		level_2.enemiesSet = enemiesSets.EnemiesSet2(self.character, level_2)
-		level_2.levelExit = levelExit.LevelExit(835, 688)
-		level_2.levelExitCastle = levelExitCastle.LevelExitCastle(650, 376)
-		
+		level_1 = self.setFirstLevel()
+		level_2 = self.setSecondLevel()
 		self.levels = [level_1, level_2]
 		
 		self.currentLevel = self.levels[current_level_no - 1]	
@@ -453,8 +441,25 @@ class GamePlay(object):
 		self.currentLevel.timeStart = time.time()
 		self.character.jumpStart = time.time()
 		self.gameLoop()
-		
-	
+
+	def setFirstLevel(self):
+		level_1 = Level.Level(4500, 1000, 0, 800)
+		level_1.platformsSet = platformsSets.PlatformSet1(self.character)
+		level_1.starsSet = starsSets.StarsSet1(self.character)
+		level_1.enemiesSet = enemiesSets.EnemiesSet1(self.character, level_1)
+		level_1.levelExit = levelExit.LevelExit(4185, 887)
+		level_1.levelExitCastle = levelExitCastle.LevelExitCastle(4000, 575)
+		return level_1
+
+	def setSecondLevel(self):
+		level_2 = Level.Level(3000, 1000, 100, 650)
+		level_2.platformsSet = platformsSets.PlatformSet2(self.character)
+		level_2.starsSet = starsSets.StarsSet2(self.character)
+		level_2.enemiesSet = enemiesSets.EnemiesSet2(self.character, level_2)
+		level_2.levelExit = levelExit.LevelExit(835, 688)
+		level_2.levelExitCastle = levelExitCastle.LevelExitCastle(650, 376)
+		return level_2
+
 	# gameplay loop
 	def gameLoop(self):	
 		# the event loop
