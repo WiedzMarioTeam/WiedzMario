@@ -165,11 +165,12 @@ class Player(pygame.sprite.Sprite):
 					return self.lifeLost()
 		return False
 					
-	def checkCollisionsWithStars(self):	
+	def checkCollisionsWithStars(self, gameMusic):
 		for star in self.level.starsSet.stars:
 			if self.rect.colliderect(star.rect):
 				self.score += globvar.POINTS_PER_STAR
 				self.level.starsSet.stars.remove(star)
+				gameMusic.playSound('collect')
 				
 	def resetPosition(self):
 		self.rect.x = self.level.start_x
