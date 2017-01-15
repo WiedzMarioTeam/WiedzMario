@@ -463,6 +463,7 @@ class GamePlay(object):
 	# gameplay loop
 	def gameLoop(self):	
 		# the event loop
+		flipStarsCounter = 0;
 		while self.main_loop:
 		
 			#przetwarzamy ruchy przeciwnikow
@@ -545,9 +546,15 @@ class GamePlay(object):
 			# in case of end-game
 			if self.main_loop == False:
 				break
-				
+			
+			#Obracanie gwiazdek
+			flipStarsCounter += 1
+			flipStarsCounter = flipStarsCounter % (globvar.TICK/3)
+			if flipStarsCounter ==0:
+				for e in self.currentLevel.starsSet.stars:
+					e.rotate()
+					
 			self.screen.fill(globvar.BACKGROUND_FILL)
-
 			
 			for e in self.currentLevel.platformsSet.platforms:
 				self.screen.blit(e.image, self.camera.apply(e))
