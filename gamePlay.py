@@ -13,7 +13,8 @@ class GamePlay(object):
                                                   'player_death': 'sfx/death2.wav',
                                                   'gameover': 'sfx/gameover.wav',
                                                   'win': 'sfx/win.wav',
-												  'menu': 'sfx/menu.wav'})
+												  'menu': 'sfx/menu.wav',
+												  'collect': 'sfx/collect.wav'})
 		# control keys
 		self.jump = pygame.K_SPACE
 		self.left = pygame.K_LEFT
@@ -497,7 +498,7 @@ class GamePlay(object):
 			self.character.checkCollisionsWithEnemies(self.game_music)
 
 			# Sprawdzamy, czy zebrano jakas gwiazdke		
-			self.character.checkCollisionsWithStars()
+			self.character.checkCollisionsWithStars(self.game_music)
 			
 			#Sprawdzamy, czy gracz dotarl do konca poziomu
 			for ex in self.currentLevel.levelExit.exit:
