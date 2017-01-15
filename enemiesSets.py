@@ -33,10 +33,14 @@ class EnemiesSet2(object):
 		self.enemies = pygame.sprite.Group()
 		self.player = player
  
-        # pos_x, pos_y, sizeH, sizeW, min_x, max_x, min_y, max_y, speed_x, speed_y, level, pointsForKill
-		enemies = [baseEnemy.BaseEnemy(200, 748, 80,102, 100, 800, 748, 748, 1, 0, level, 15, enemy1Animation.enemy1Animation()),
-						baseEnemy.BaseEnemy(200, 748, 80,102, 950, 950, 748, 748, 0, 11, level, 15, enemy1Animation.enemy1Animation()),
-						baseEnemy.BaseEnemy(650, 250, 80,102, 0, 1024, 748, 748, 2, 10, level, 50, enemy2Animation.enemy2Animation())]
+        # 						   pos_x, pos_y, sizeH, sizeW, min_x, max_x, min_y, max_y, speed_x, speed_y, level, pointsForKill
+		enemies = [baseEnemy.BaseEnemy(3100, 700, 74, 86, 3000, 3400, 0, 0, 5, 0, level, 15, enemy1Animation.enemy1Animation()),
+				   baseEnemy.BaseEnemy(3200, 700, 74, 86, 3000, 3400, 0, 0, 5, 0, level, 15,enemy1Animation.enemy1Animation()),
+				   baseEnemy.BaseEnemy(3600, 600, 74, 86, 0, 0, 700, 900, 0, 10, level, 50, enemy2Animation.enemy2Animation()),
+				   baseEnemy.BaseEnemy(3700, 600, 74, 86, 0, 0, 700, 900, 0, 10, level, 50, enemy2Animation.enemy2Animation()),
+				   baseEnemy.BaseEnemy(4000, 600, 74, 86, 0, 0, 700, 900, 0, 10, level, 50, enemy2Animation.enemy2Animation()),
+				   baseEnemy.BaseEnemy(4400, 600, 74, 86, 0, 0, 700, 900, 0, 10, level, 50, enemy2Animation.enemy2Animation()),
+					]
 						
 		for enemy in enemies:
 			self.enemies.add(enemy)

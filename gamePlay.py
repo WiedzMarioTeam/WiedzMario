@@ -451,12 +451,12 @@ class GamePlay(object):
 		return level_1
 
 	def setSecondLevel(self):
-		level_2 = Level.Level(3000, 1000, 100, 650)
+		level_2 = Level.Level(5900, 1000, 0, 800)
 		level_2.platformsSet = platformsSets.PlatformSet2(self.character)
 		level_2.starsSet = starsSets.StarsSet2(self.character)
 		level_2.enemiesSet = enemiesSets.EnemiesSet2(self.character, level_2)
-		level_2.levelExit = levelExit.LevelExit(835, 688)
-		level_2.levelExitCastle = levelExitCastle.LevelExitCastle(650, 376)
+		level_2.levelExit = levelExit.LevelExit(5585, 887)
+		level_2.levelExitCastle = levelExitCastle.LevelExitCastle(5400, 575)
 		return level_2
 
 	# gameplay loop
