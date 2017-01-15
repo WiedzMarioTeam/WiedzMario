@@ -12,7 +12,8 @@ class GamePlay(object):
                                                   'enemy_death': 'sfx/death1.wav',
                                                   'player_death': 'sfx/death2.wav',
                                                   'gameover': 'sfx/gameover.wav',
-                                                  'win': 'sfx/win.wav'})
+                                                  'win': 'sfx/win.wav',
+												  'menu': 'sfx/menu.wav'})
 		# control keys
 		self.jump = pygame.K_SPACE
 		self.left = pygame.K_LEFT
@@ -32,7 +33,6 @@ class GamePlay(object):
 		self.setFunDict()
 		self.menuLoop(self.menu_tree['main'])
 
-	
 	# create game menu
 	def populateMenuTree(self):
 		self.menu_tree['main'] = gameMenu.GameMenu()
@@ -48,7 +48,6 @@ class GamePlay(object):
 		self.menu_tree['levels'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, self.getLevels(), True, 'levels', self.getMenuLabel('Choose level'))
 		self.menu_tree['controls'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Left' + ' [ ' + pygame.key.name(self.left) + ' ]' , 'Right' + ' [ ' + pygame.key.name(self.right) + ' ]', 'Jump' + ' [ ' + pygame.key.name(self.jump) + ' ]'], True, 'controls', self.getMenuLabel('Customize controls'), self.left, self.right, self.jump)
 		self.menu_tree['sound'].initVolMenu(self.scr_width, self.scr_height, self.game_music, 'sound', self.getMenuLabel('Customize sound volume'))
-		
 	
 	# set function dictionary
 	def setFunDict(self):
@@ -83,7 +82,8 @@ class GamePlay(object):
 	def menuLoop(self, menu):
 		# a little trick to highlight the first position when menu is entered
 		self.fun_dict[menu.menu_name](menu, None)
-		
+		if self.game_music.isSoundPlay('menu') == 1:
+			self.game_music.playSound('menu')
 		while menu.menu_loop:
 			self.clock.tick(globvar.TICK)
             
@@ -162,6 +162,7 @@ class GamePlay(object):
 			elif text == 'Quit':
 				sys.exit()
 			elif text == 'Resume':
+				self.game_music.turnOffSound('menu')
 				menu.current_item = 0
 				menu.menu_loop = False
 			elif text == 'Return to main menu':
@@ -415,6 +416,7 @@ class GamePlay(object):
 	
 	# initialization of the actual gameplay
 	def initGame(self, font, character, clock, current_level_no):
+		self.game_music.turnOffSound('menu')
 		self.font = font
 		# set the player character
 		self.character = character
