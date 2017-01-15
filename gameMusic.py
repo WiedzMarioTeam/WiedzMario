@@ -29,7 +29,7 @@ class GameMusic(object):
 		self.sounds[key].stop()
 
 	def isSoundPlay(self,key):
-		if self.sounds[key].get_volume() > 0:
-			return 1
-		else:
+		if pygame.mixer.get_busy():
 			return 0
+		else:
+			return 1
