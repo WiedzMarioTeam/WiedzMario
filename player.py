@@ -1,15 +1,14 @@
-import pygame, globvar
+import pygame, globvar, playerAnimation, time
  
 # class representing the player
 class Player(pygame.sprite.Sprite):
 	# constructor allowing to set positon, size and color of the player
-	def __init__(self, (pos_x, pos_y), size, fill_color):
+	def __init__(self, (pos_x, pos_y)):
 		# call the parent constructor
 		pygame.sprite.Sprite.__init__(self) 
 			
 		# set player size
-		self.image = pygame.Surface([size, size])
-		self.image.fill(fill_color)
+		self.image = pygame.Surface([globvar.PLAYER_WIDTH, globvar.PLAYER_HEIGHT])
 	 
 		# place the player in desired position (defined by top left vertex)
 		self.rect = self.image.get_rect()
@@ -32,6 +31,14 @@ class Player(pygame.sprite.Sprite):
 		#ilosc punktow 
 		self.score = 0
 		self.stars = 0
+	
+		#zmienna przechowujaca klase animacji
+		self.animations = playerAnimation.playerAnimation()
+		self.current_img = 0
+		self.ticksFromLastChange = 0
+		#kierunek ostatniego ruchu
+		self.flipImage = False
+		self.jumpStart = 0
 		
     # update next movement depending on user's actions    
 	def go_left(self):
@@ -76,6 +83,42 @@ class Player(pygame.sprite.Sprite):
 				# reset vertical movement indicator only if we found conflict while moving down
 				self.change_y = 0
 				
+		if self.change_y == 0:			
+			if self.change_x == 0:
+				self.ticksFromLastChange = 0
+				self.current_img = 0
+				if self.flipImage:
+					self.image = pygame.transform.flip(self.animations.imageRun[self.current_img], True, False)
+				else:
+					self.image = self.animations.imageRun[0]
+				
+			else:
+				self.ticksFromLastChange += 1
+				self.ticksFromLastChange = self.ticksFromLastChange % (globvar.TICK/len(self.animations.imageRun)/2)
+				if self.ticksFromLastChange == 0:
+					self.current_img += 1
+					self.current_img = self.current_img % len(self.animations.imageRun)
+					if self.change_x < 0:
+						self.image = pygame.transform.flip(self.animations.imageRun[self.current_img], True, False)
+						self.flipImage = True
+					else:
+						self.image = self.animations.imageRun[self.current_img]
+						self.flipImage = False
+						
+		else:
+			jumpLen = (time.time() - self.jumpStart)*1000
+			jumpLen = jumpLen % (globvar.JUMP_CYCLE/len(self.animations.imageJump))
+			if jumpLen <= 10:
+				self.current_img += 1
+				self.current_img = self.current_img % len(self.animations.imageJump)
+				if self.change_x < 0:
+					self.image = pygame.transform.flip(self.animations.imageJump[self.current_img], True, False)
+					self.flipImage = True
+				else:
+					self.image = self.animations.imageJump[self.current_img]
+					self.flipImage = False
+			
+				
 	# compute gravity
 	def update_gravity(self):
 		# we don't want the player to be stuck under a platform
@@ -97,6 +140,8 @@ class Player(pygame.sprite.Sprite):
 				if self.rect.bottom == col.rect.top:
 					soundProvider.playSound('jump')
 					self.change_y = -11
+					#self.ticksFromLastChange =0
+					self.jumpStart = time.time()
  
     # update next movement depending on user's actions    
 	def move_left(self):

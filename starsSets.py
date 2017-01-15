@@ -38,7 +38,7 @@ class StarsSet2(object):
         # position, width, height and color of the platform
 		stars = [[250, 550, 15, 15, globvar.COLOR_YELLOW],
                  [350, 350, 15, 15, globvar.COLOR_YELLOW],
-                 [850, 700, 15, 15, globvar.COLOR_YELLOW]]
+                 [600, 700, 15, 15, globvar.COLOR_YELLOW]]
 		
 		for star in stars:
 			surface = envsurface.EnvSurface(star[0], star[1], star[2], star[3], star[4])

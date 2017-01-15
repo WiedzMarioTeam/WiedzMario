@@ -8,6 +8,7 @@ class Level(object):
 		self.enemiesSet = None
 		self.timeStart = None
 		self.levelExit = None
+		self.levelExitCastle = None
 		self.width = width
 		self.height = height
 		self.start_x = player_x
@@ -18,6 +19,7 @@ class Level(object):
 		self.platformsSet.update()
 		self.enemiesSet.update()
 		self.levelExit.update()
+		self.levelExitCastle.update()
 		
 	def draw(self, screen):
         # fill the background
@@ -27,3 +29,4 @@ class Level(object):
 		self.platformsSet.draw(screen)
 		self.enemiesSet.draw(screen)
 		self.levelExit.draw(screen)
+		self.levelExitCastle.draw(screen)
