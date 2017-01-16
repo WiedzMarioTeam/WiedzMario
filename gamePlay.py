@@ -437,6 +437,11 @@ class GamePlay(object):
 		self.sprites = pygame.sprite.Group()
 		self.sprites.add(self.character)
 		
+		self.starImages = []
+		starsPNG = pygame.image.load('sprite/stars.png').convert_alpha()
+		for x in range(8):
+			self.starImages.append( pygame.transform.scale(starsPNG.subsurface(70*x,0,70,70), (40,40)))
+		
 		self.camera = cameraModule.Camera(cameraModule.complex_camera, self.currentLevel.width, self.currentLevel.height)
 		self.currentLevel.timeStart = time.time()
 		self.character.jumpStart = time.time()
@@ -463,7 +468,8 @@ class GamePlay(object):
 	# gameplay loop
 	def gameLoop(self):	
 		# the event loop
-		flipStarsCounter = 0;
+		flipStarsCounter = 0
+		starCurrImgNo = 6
 		while self.main_loop:
 		
 			#przetwarzamy ruchy przeciwnikow
@@ -549,10 +555,12 @@ class GamePlay(object):
 			
 			#Obracanie gwiazdek
 			flipStarsCounter += 1
-			flipStarsCounter = flipStarsCounter % (globvar.TICK/3)
+			flipStarsCounter = flipStarsCounter % (globvar.TICK/6)
 			if flipStarsCounter ==0:
+				starCurrImgNo += 1
+				starCurrImgNo = starCurrImgNo % len(self.starImages)
 				for e in self.currentLevel.starsSet.stars:
-					e.rotate()
+					e.image = self.starImages[starCurrImgNo]
 					
 			self.screen.fill(globvar.BACKGROUND_FILL)
 			

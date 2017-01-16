@@ -14,4 +14,5 @@ class BaseStar(pygame.sprite.Sprite):
 		self.rect.y = pos_y
 
 	def rotate(self):
-		self.image = pygame.transform.flip(self.image, True, False)
+		self.image, tmp = utilsSet.rot_center(self.image,self.image.get_rect(center=(100,100)),7)
+		#self.image = pygame.transform.flip(self.image, True, False)
