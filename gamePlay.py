@@ -1,5 +1,7 @@
 import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, levelExitCastle, utilsSet, cameraModule, menuItem, volMenuItem, gameMusic, gameMenu, sys
 
+from pygame.locals import *
+
 class GamePlay(object):
 	# set basic game settings
 	def __init__(self):
@@ -444,7 +446,6 @@ class GamePlay(object):
 		
 		self.camera = cameraModule.Camera(cameraModule.complex_camera, self.currentLevel.width, self.currentLevel.height)
 		self.currentLevel.timeStart = time.time()
-		self.character.jumpStart = time.time()
 		self.gameLoop()
 
 	def setFirstLevel(self):
@@ -470,6 +471,8 @@ class GamePlay(object):
 		# the event loop
 		flipStarsCounter = 0
 		starCurrImgNo = 6
+		backgrounSheet = pygame.image.load('Images/background.png').convert_alpha();
+		bg_x = 0
 		while self.main_loop:
 		
 			#przetwarzamy ruchy przeciwnikow
@@ -562,7 +565,21 @@ class GamePlay(object):
 				for e in self.currentLevel.starsSet.stars:
 					e.image = self.starImages[starCurrImgNo]
 					
-			self.screen.fill(globvar.BACKGROUND_FILL)
+			
+			
+			if self.character.rect.left + self.character.rect.width/2 > globvar.SCREEN_WIDTH/2 and self.character.rect.left + self.character.rect.width/2 < self.currentLevel.width - globvar.SCREEN_WIDTH/2:
+				bg_x =  self.character.rect.left + self.character.rect.width/2 - globvar.SCREEN_WIDTH/2
+				bg_x = bg_x %globvar.BACKGROUND_IMAGE_WIDTH
+			else:
+				bg_x = 0
+			
+			sceenBackground = backgrounSheet.copy()
+			sceenBackground.scroll(-bg_x, 0)
+			self.screen.blit(sceenBackground, (0, 0))
+			if globvar.BACKGROUND_IMAGE_WIDTH - bg_x < globvar.SCREEN_WIDTH:
+				self.screen.blit(backgrounSheet, (globvar.BACKGROUND_IMAGE_WIDTH - bg_x, 0))
+			
+			characterOldX = self.character.rect.left
 			
 			for e in self.currentLevel.platformsSet.platforms:
 				self.screen.blit(e.image, self.camera.apply(e))
@@ -576,10 +593,6 @@ class GamePlay(object):
 				self.screen.blit(e.image, self.camera.apply(e))
 
 			self.screen.blit(self.character.image, self.camera.apply(self.character))
-			
-			# draw the scene
-			#currentLevel.draw(screen)
-			#sprites.draw(screen)
 	 
 			# display the defined number of FPS
 			self.clock.tick(globvar.TICK)

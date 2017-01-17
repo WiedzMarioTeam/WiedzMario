@@ -40,6 +40,8 @@ class Player(pygame.sprite.Sprite):
 		self.flipImage = False
 		self.jumpStart = 0
 		
+		self.image = self.animations.imageJump[0]
+		
     # update next movement depending on user's actions    
 	def go_left(self):
 		self.change_x = -globvar.STRIDE
