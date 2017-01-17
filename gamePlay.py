@@ -13,7 +13,8 @@ class GamePlay(object):
                                                   'player_death': 'sfx/death2.wav',
                                                   'gameover': 'sfx/gameover.wav',
                                                   'win': 'sfx/win.wav',
-												  'menu': 'sfx/menu.wav'})
+												  'menu': 'sfx/menu.wav',
+												  'collect': 'sfx/collect.wav'})
 		# control keys
 		self.jump = pygame.K_SPACE
 		self.left = pygame.K_LEFT
@@ -426,20 +427,8 @@ class GamePlay(object):
 		self.currentLevelNumber = current_level_no
 		self.levels = None
 		# tworzymy obiekty dla kolejnych poziomow
-		level_1 = Level.Level(2000, 1600, 100, 1300)
-		level_1.platformsSet = platformsSets.PlatformSet1(self.character)
-		level_1.starsSet = starsSets.StarsSet1(self.character)	
-		level_1.enemiesSet = enemiesSets.EnemiesSet1(self.character, level_1)
-		level_1.levelExit = levelExit.LevelExit(1015, 688)
-		level_1.levelExitCastle = levelExitCastle.LevelExitCastle(830, 378)
-
-		level_2 = Level.Level(3000, 1000, 100, 650)
-		level_2.platformsSet = platformsSets.PlatformSet2(self.character)
-		level_2.starsSet = starsSets.StarsSet2(self.character)	
-		level_2.enemiesSet = enemiesSets.EnemiesSet2(self.character, level_2)
-		level_2.levelExit = levelExit.LevelExit(835, 688)
-		level_2.levelExitCastle = levelExitCastle.LevelExitCastle(650, 376)
-		
+		level_1 = self.setFirstLevel()
+		level_2 = self.setSecondLevel()
 		self.levels = [level_1, level_2]
 		
 		self.currentLevel = self.levels[current_level_no - 1]	
@@ -448,15 +437,39 @@ class GamePlay(object):
 		self.sprites = pygame.sprite.Group()
 		self.sprites.add(self.character)
 		
+		self.starImages = []
+		starsPNG = pygame.image.load('sprite/stars.png').convert_alpha()
+		for x in range(8):
+			self.starImages.append( pygame.transform.scale(starsPNG.subsurface(70*x,0,70,70), (40,40)))
+		
 		self.camera = cameraModule.Camera(cameraModule.complex_camera, self.currentLevel.width, self.currentLevel.height)
 		self.currentLevel.timeStart = time.time()
 		self.character.jumpStart = time.time()
 		self.gameLoop()
-		
-	
+
+	def setFirstLevel(self):
+		level_1 = Level.Level(4500, 1000, 0, 800)
+		level_1.platformsSet = platformsSets.PlatformSet1(self.character)
+		level_1.starsSet = starsSets.StarsSet1(self.character)
+		level_1.enemiesSet = enemiesSets.EnemiesSet1(self.character, level_1)
+		level_1.levelExit = levelExit.LevelExit(4185, 887)
+		level_1.levelExitCastle = levelExitCastle.LevelExitCastle(4000, 575)
+		return level_1
+
+	def setSecondLevel(self):
+		level_2 = Level.Level(5900, 1000, 0, 800)
+		level_2.platformsSet = platformsSets.PlatformSet2(self.character)
+		level_2.starsSet = starsSets.StarsSet2(self.character)
+		level_2.enemiesSet = enemiesSets.EnemiesSet2(self.character, level_2)
+		level_2.levelExit = levelExit.LevelExit(5585, 887)
+		level_2.levelExitCastle = levelExitCastle.LevelExitCastle(5400, 575)
+		return level_2
+
 	# gameplay loop
 	def gameLoop(self):	
 		# the event loop
+		flipStarsCounter = 0
+		starCurrImgNo = 6
 		while self.main_loop:
 		
 			#przetwarzamy ruchy przeciwnikow
@@ -497,7 +510,7 @@ class GamePlay(object):
 			self.character.checkCollisionsWithEnemies(self.game_music)
 
 			# Sprawdzamy, czy zebrano jakas gwiazdke		
-			self.character.checkCollisionsWithStars()
+			self.character.checkCollisionsWithStars(self.game_music)
 			
 			#Sprawdzamy, czy gracz dotarl do konca poziomu
 			for ex in self.currentLevel.levelExit.exit:
@@ -539,9 +552,17 @@ class GamePlay(object):
 			# in case of end-game
 			if self.main_loop == False:
 				break
-				
+			
+			#Obracanie gwiazdek
+			flipStarsCounter += 1
+			flipStarsCounter = flipStarsCounter % (globvar.TICK/6)
+			if flipStarsCounter ==0:
+				starCurrImgNo += 1
+				starCurrImgNo = starCurrImgNo % len(self.starImages)
+				for e in self.currentLevel.starsSet.stars:
+					e.image = self.starImages[starCurrImgNo]
+					
 			self.screen.fill(globvar.BACKGROUND_FILL)
-
 			
 			for e in self.currentLevel.platformsSet.platforms:
 				self.screen.blit(e.image, self.camera.apply(e))
