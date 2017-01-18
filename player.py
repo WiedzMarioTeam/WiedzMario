@@ -3,7 +3,7 @@ import pygame, globvar, playerAnimation, time
 # class representing the player
 class Player(pygame.sprite.Sprite):
 	# constructor allowing to set positon, size and color of the player
-	def __init__(self, (pos_x, pos_y)):
+	def __init__(self):
 		# call the parent constructor
 		pygame.sprite.Sprite.__init__(self) 
 			
@@ -12,8 +12,8 @@ class Player(pygame.sprite.Sprite):
 	 
 		# place the player in desired position (defined by top left vertex)
 		self.rect = self.image.get_rect()
-		self.rect.x = pos_x
-		self.rect.y = pos_y
+		self.rect.x = 0
+		self.rect.y = 0
 	 
 		# set initial movement indicator to zero
 		self.change_x = 0
@@ -25,8 +25,8 @@ class Player(pygame.sprite.Sprite):
 		#ilosc zyc
 		self.lives = globvar.START_LIVES_AMOUNT
 		
-		self.lastBottomPossition = pos_y
-		self.beforeGravity = pos_y
+		self.lastBottomPossition = 0
+		self.beforeGravity = 0
 		
 		#ilosc punktow 
 		self.score = 0
