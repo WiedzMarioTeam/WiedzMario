@@ -1,4 +1,4 @@
-import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, levelExitCastle, utilsSet, cameraModule, menuItem, volMenuItem, gameMusic, gameMenu, sys
+import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, levelExitCastle, nextLevelEntrance, utilsSet, cameraModule, menuItem, volMenuItem, gameMusic, gameMenu, sys
 
 from pygame.locals import *
 
@@ -459,7 +459,7 @@ class GamePlay(object):
 		level_1.starsSet = starsSets.StarsSet1(self.character)
 		level_1.enemiesSet = enemiesSets.EnemiesSet1(self.character, level_1)
 		level_1.levelExit = levelExit.LevelExit(4185, 887)
-		level_1.levelExitCastle = levelExitCastle.LevelExitCastle(4000, 575)
+		level_1.nextLevelEntrance = nextLevelEntrance.NextLevelEntrance(3600, 567)
 		return level_1
 
 	def setSecondLevel(self):
@@ -468,7 +468,7 @@ class GamePlay(object):
 		level_2.starsSet = starsSets.StarsSet2(self.character)
 		level_2.enemiesSet = enemiesSets.EnemiesSet2(self.character, level_2)
 		level_2.levelExit = levelExit.LevelExit(5585, 887)
-		level_2.levelExitCastle = levelExitCastle.LevelExitCastle(5400, 575)
+		level_2.levelExitCastle = levelExitCastle.LevelExitCastle(5400, 578)
 		return level_2
 
 	# gameplay loop
@@ -597,13 +597,17 @@ class GamePlay(object):
 			
 			for e in self.currentLevel.platformsSet.platforms:
 				self.screen.blit(e.image, self.camera.apply(e))
-			for e in self.currentLevel.levelExitCastle.castle:
+			for e in self.currentLevel.levelExit.exit:
 				self.screen.blit(e.image, self.camera.apply(e))
+			if self.currentLevel.levelExitCastle is not None:
+				for e in self.currentLevel.levelExitCastle.castle:
+					self.screen.blit(e.image, self.camera.apply(e))
+			if self.currentLevel.nextLevelEntrance is not None:
+				for e in self.currentLevel.nextLevelEntrance.doors:
+					self.screen.blit(e.image, self.camera.apply(e))
 			for e in self.currentLevel.starsSet.stars:
 				self.screen.blit(e.image, self.camera.apply(e))
 			for e in self.currentLevel.enemiesSet.enemies:
-				self.screen.blit(e.image, self.camera.apply(e))
-			for e in self.currentLevel.levelExit.exit:
 				self.screen.blit(e.image, self.camera.apply(e))
 
 			self.screen.blit(self.character.image, self.camera.apply(self.character))
