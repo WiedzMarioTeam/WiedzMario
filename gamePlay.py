@@ -15,6 +15,9 @@ class GamePlay(object):
                                                   'player_death': 'sfx/death2.wav',
                                                   'gameover': 'sfx/gameover.wav',
                                                   'win': 'sfx/win.wav',
+												  'endLvl' : 'sfx/level_complete.wav',
+												  'endGame': 'sfx/game_complete.wav',
+												  'gameTheme' : 'sfx/game_theme.ogg',
 												  'menu': 'sfx/menu.wav',
 												  'collect': 'sfx/collect.wav'})
 		# control keys
@@ -420,6 +423,7 @@ class GamePlay(object):
 	# initialization of the actual gameplay
 	def initGame(self, font, character, clock, current_level_no):
 		self.game_music.turnOffSound('menu')
+
 		self.font = font
 		# set the player character
 		self.character = character
@@ -472,9 +476,10 @@ class GamePlay(object):
 		flipStarsCounter = 0
 		starCurrImgNo = 6
 		backgrounSheet = pygame.image.load('Images/background.png').convert_alpha();
+		self.game_music.playSound('gameTheme')
 		bg_x = 0
 		while self.main_loop:
-		
+
 			#przetwarzamy ruchy przeciwnikow
 			for enemy in self.currentLevel.enemiesSet.enemies:
 				enemy.moveEnemy()
@@ -518,16 +523,19 @@ class GamePlay(object):
 			#Sprawdzamy, czy gracz dotarl do konca poziomu
 			for ex in self.currentLevel.levelExit.exit:
 				if self.character.rect.colliderect(ex.rect):
+					self.game_music.turnOffSound('gameTheme')
 					if self.currentLevelNumber == len(self.levels):
 						self.utils.printTextCenter("YOU WON THE GAME")
 						text_width, text_height = self.font.size("Score:"+str(self.character.score))
 						scoreText=self.font.render("Score:"+str(self.character.score), 1,(255,255,0))
 						self.screen.blit(scoreText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT + text_height + 20)/2))	
 						pygame.display.update()
-						self.playSound('win')
-						pygame.time.delay(3000)
+						self.playSound('endGame')
+						pygame.time.delay(6000)
 						self.main_loop = False
 					else:
+						self.playSound('endLvl')
+						pygame.time.delay(5000)
 						self.currentLevel = self.levels[self.currentLevelNumber]
 						self.currentLevelNumber += 1
 						self.character.level = self.currentLevel
@@ -535,6 +543,7 @@ class GamePlay(object):
 						self.camera = cameraModule.Camera(cameraModule.complex_camera, self.currentLevel.width, self.currentLevel.height)
 						self.utils.printLevelNumber(self.currentLevelNumber)
 						self.currentLevel.timeStart = time.time()
+					self.game_music.playSound('gameTheme')
 			
 			# don't let the player leave the world
 			if self.character.rect.right > self.currentLevel.width:
