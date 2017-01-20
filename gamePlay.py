@@ -88,6 +88,7 @@ class GamePlay(object):
 	def menuLoop(self, menu):
 		# a little trick to highlight the first position when menu is entered
 		self.fun_dict[menu.menu_name](menu, None)
+		self.game_music.turnOffSound('gameTheme')
 		if self.game_music.isSoundPlay('menu') == 1:
 			self.game_music.playSound('menu')
 		while menu.menu_loop:
@@ -523,17 +524,18 @@ class GamePlay(object):
 			#Sprawdzamy, czy gracz dotarl do konca poziomu
 			for ex in self.currentLevel.levelExit.exit:
 				if self.character.rect.colliderect(ex.rect):
-					self.game_music.turnOffSound('gameTheme')
 					if self.currentLevelNumber == len(self.levels):
 						self.utils.printTextCenter("YOU WON THE GAME")
 						text_width, text_height = self.font.size("Score:"+str(self.character.score))
 						scoreText=self.font.render("Score:"+str(self.character.score), 1,(255,255,0))
 						self.screen.blit(scoreText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT + text_height + 20)/2))	
 						pygame.display.update()
+						self.game_music.turnOffSound('gameTheme')
 						self.playSound('endGame')
 						pygame.time.delay(6000)
 						self.main_loop = False
 					else:
+						self.game_music.turnOffSound('gameTheme')
 						self.playSound('endLvl')
 						pygame.time.delay(5000)
 						self.currentLevel = self.levels[self.currentLevelNumber]
@@ -558,11 +560,14 @@ class GamePlay(object):
 			#Jesli zostalo 0 zyc, to funkcja informuje o koncu gry			
 			if self.character.lives == 0:
 				self.playSound('gameover')
+				self.game_music.turnOffSound('gameTheme')
 				self.utils.gameOver(self.currentLevel, self.screen, self.character)
 				self.main_loop = False
 			
 			# in case of end-game
 			if self.main_loop == False:
+				self.game_music.turnOffSound('gameTheme')
+				self.game_music.playSound('menu')
 				break
 			
 			#Obracanie gwiazdek

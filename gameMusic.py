@@ -14,7 +14,6 @@ class GameMusic(object):
 
 	def isSound(self):
 		return self.is_sound
-		
 
 	def setSound(self, is_sound):
 		self.is_sound = is_sound
