@@ -11,8 +11,9 @@ class GamePlay(object):
 		self.player_positions = {'1': (100, 1300), '2': (100, 650)}
 		# object handling class music
 		self.game_music = gameMusic.GameMusic(2, {'jump': 'sfx/jump.wav',
-                                                  'enemy_death': 'sfx/death1.wav',
-                                                  'player_death': 'sfx/death2.wav',
+                                                  'first_enemy_death': 'sfx/death1.wav',
+												  'second_enemy_death': 'sfx/death2.wav',
+                                                  'player_death': 'sfx/death3.wav',
                                                   'gameover': 'sfx/gameover.wav',
                                                   'win': 'sfx/win.wav',
 												  'endLvl' : 'sfx/level_complete.wav',
@@ -554,7 +555,7 @@ class GamePlay(object):
 			if self.character.rect.left < 0:
 				self.character.rect.left = 0
 			if self.character.rect.bottom > self.currentLevel.height:
-				self.game_music.playSound('player_death')
+				# self.game_music.playSound('player_death')
 				self.character.lifeLost()
 				
 			#Jesli zostalo 0 zyc, to funkcja informuje o koncu gry			

@@ -161,7 +161,10 @@ class Player(pygame.sprite.Sprite):
 				if self.lastBottomPossition <= enemy.rect.top + enemy.speed_y:
 					self.level.enemiesSet.enemies.remove(enemy)
 					self.score = self.score + enemy.pointsForKill
-					gameMusic.playSound('enemy_death')
+					if enemy.enemyType == globvar.ENEMY_TYPE_1:
+						gameMusic.playSound('first_enemy_death')
+					elif enemy.enemyType == globvar.ENEMY_TYPE_2:
+						gameMusic.playSound('second_enemy_death')
 				else:
 					gameMusic.playSound('player_death')
 					return self.lifeLost()

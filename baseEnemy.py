@@ -3,7 +3,7 @@ import pygame, globvar, enemy1Animation, enemy2Animation
 # Podstawowa klasa reprezentujaca przeciwnika
 class BaseEnemy(pygame.sprite.Sprite):
 	# constructor allowing to set positon, size and color of the player
-	def __init__(self, pos_x, pos_y, sizeWidth, sizeHeight, min_x, max_x, min_y, max_y, speed_x, speed_y, level, pointsForKill, animation):
+	def __init__(self, pos_x, pos_y, sizeWidth, sizeHeight, min_x, max_x, min_y, max_y, speed_x, speed_y, level, pointsForKill, animation , enemyType):
 		# call the parent constructor
 		pygame.sprite.Sprite.__init__(self) 
 			
@@ -36,7 +36,9 @@ class BaseEnemy(pygame.sprite.Sprite):
 		
 		# Poziom w ktorym wystepuje przeciwnik
 		self.level = level
-		
+
+		self.enemyType = enemyType
+
 		#punkty za zabicie wroga
 		self.pointsForKill = pointsForKill
 		
