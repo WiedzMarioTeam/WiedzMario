@@ -171,6 +171,7 @@ class GamePlay(object):
 				sys.exit()
 			elif text == 'Resume':
 				self.game_music.turnOffSound('menu')
+				self.game_music.playSound('gameTheme')
 				menu.current_item = 0
 				menu.menu_loop = False
 			elif text == 'Return to main menu':
@@ -179,6 +180,8 @@ class GamePlay(object):
 		
 		# resume game logic
 		if key == pygame.K_ESCAPE and not menu.start_menu:
+			self.game_music.turnOffSound('menu')
+			self.game_music.playSound('gameTheme')
 			menu.current_item = 0
 			menu.menu_loop = False
 			
