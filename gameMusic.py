@@ -24,6 +24,10 @@ class GameMusic(object):
 			self.sounds[key].set_volume((self.sound_level / 10.0) + 0.1)
 			self.sounds[key].play(0)
 
+	def setVolume(self,key):
+		self.sounds[key].set_volume((self.sound_level / 10.0) + 0.1)
+
+
 	def turnOffSound(self,key):
 		self.sounds[key].stop()
 

@@ -733,6 +733,7 @@ class GamePlay(object):
 		self.game_music.sound_level = menu.tmp_sound
 		menu.save_sound = False
 		menu.is_saved = True
+		self.game_music.setVolume('menu')
 		
 	# reset sound menu
 	def resetSoundMenu(self, menu):
