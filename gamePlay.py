@@ -646,7 +646,11 @@ class GamePlay(object):
 	def toggleSound(self, menu):
 		self.setSound(not self.isSound())
 		menu.items[globvar.SOUND].set_active(self.isSound())
-		menu.items[globvar.TOGGLE].set_text('Toggle sound' + ' ' + ('(Off)' if self.isSound() else '(On)'))	
+		menu.items[globvar.TOGGLE].set_text('Toggle sound' + ' ' + ('(Off)' if self.isSound() else '(On)'))
+		if self.isSound():
+			self.game_music.playSound('menu')
+		else:
+			self.game_music.turnOffSound('menu')
 
 			
 	# play a given sound

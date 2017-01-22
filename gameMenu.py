@@ -40,7 +40,6 @@ class GameMenu(object):
 			if item == 'Sound volume':
 				if not is_sound:
 					menu_item.set_active(False)
-
  
             # height of text block
 			block_height = len(self.menu_items) * menu_item.height
