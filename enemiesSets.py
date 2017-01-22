@@ -40,6 +40,7 @@ class EnemiesSet2(object):
 				   baseEnemy.BaseEnemy(3700, 600, 74, 86, 0, 0, 700, 900, 0, 10, level, 50, enemy2Animation.enemy2Animation(),globvar.ENEMY_TYPE_2),
 				   baseEnemy.BaseEnemy(4000, 600, 74, 86, 0, 0, 700, 900, 0, 10, level, 50, enemy2Animation.enemy2Animation(),globvar.ENEMY_TYPE_2),
 				   baseEnemy.BaseEnemy(4400, 600, 74, 86, 0, 0, 700, 900, 0, 10, level, 50, enemy2Animation.enemy2Animation(),globvar.ENEMY_TYPE_2),
+				   baseEnemy.BaseEnemy(5000, 700, 74, 86, 4500, 5000, 700, 900, 2, 15, level, 50, enemy2Animation.enemy2AnimationNotFlipped(),globvar.ENEMY_TYPE_2)
 					]
 						
 		for enemy in enemies:

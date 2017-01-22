@@ -41,13 +41,13 @@ class StarsSet2(object):
 		stars = [baseStar.BaseStar(640, 700),
                  baseStar.BaseStar(2460, 180), #pierwszy rzad
                  baseStar.BaseStar(2500, 180),
-                 baseStar.BaseStar(540, 180),
+                 baseStar.BaseStar(2540, 180),
                  baseStar.BaseStar(2580, 180),
                  baseStar.BaseStar(2620, 180),
                  baseStar.BaseStar(2480, 160), #drugi rzad
                  baseStar.BaseStar(2520, 160),
                  baseStar.BaseStar(2560, 160),
-                 baseStar.BaseStar(600, 160),
+                 baseStar.BaseStar(2600, 160),
                  baseStar.BaseStar(2500, 140), #trzeci rzad
 				 baseStar.BaseStar(2540, 140),
                  baseStar.BaseStar(2580, 140),
