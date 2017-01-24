@@ -48,13 +48,15 @@ class GamePlay(object):
 		self.menu_tree['levels'] = gameMenu.GameMenu()
 		self.menu_tree['controls'] = gameMenu.GameMenu()
 		self.menu_tree['sound'] = gameMenu.GameMenu()
+		self.menu_tree['credits'] = gameMenu.GameMenu()
 		
-		self.menu_tree['main'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Start', 'Choose level', 'Settings', 'Quit'], True, 'main')
-		self.menu_tree['main_game'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Resume', 'Settings', 'Return to main menu', 'Quit'], False, 'main_game')
+		self.menu_tree['main'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Start', 'Choose level', 'Settings','Credits' , 'Quit'], True, 'main')
+		self.menu_tree['main_game'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Resume', 'Settings', 'Return to main menu','Credits' ,'Quit'], False, 'main_game')
 		self.menu_tree['settings'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Toggle sound', 'Sound volume', 'Controls'], True, 'settings', self.getMenuLabel('Settings'))
 		self.menu_tree['levels'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, self.getLevels(), True, 'levels', self.getMenuLabel('Choose level'))
 		self.menu_tree['controls'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Left' + ' [ ' + pygame.key.name(self.left) + ' ]' , 'Right' + ' [ ' + pygame.key.name(self.right) + ' ]', 'Jump' + ' [ ' + pygame.key.name(self.jump) + ' ]'], True, 'controls', self.getMenuLabel('Customize controls'), self.left, self.right, self.jump)
 		self.menu_tree['sound'].initVolMenu(self.scr_width, self.scr_height, self.game_music, 'sound', self.getMenuLabel('Customize sound volume'))
+		self.menu_tree['credits'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Kacper Branka', 'Lukasz Kozlowski', 'Adrian Pankiewicz', 'Jadwiga Rusnarczyk', 'Magdalena Skalicz', 'Paulina Syposz', 'Mateusz Wojtanowicz'], True, 'credits', self.getMenuLabel('Credits'))
 	
 	# set function dictionary
 	def setFunDict(self):
@@ -64,6 +66,7 @@ class GamePlay(object):
 		self.fun_dict['levels'] = self.setKeySelectionLevels
 		self.fun_dict['controls'] = self.setKeySelectionControls
 		self.fun_dict['sound'] = self.setKeySelectionSound
+		self.fun_dict['credits'] = self.setKeySelectionCredits
 	
 	# create menu label
 	def getMenuLabel(self, text):
@@ -124,8 +127,11 @@ class GamePlay(object):
 						self.screen.blit(item.label, item.position)
  
 				pygame.display.flip()
-				
-	
+
+	def setKeySelectionCredits(self, menu, key):
+		if key == pygame.K_ESCAPE:
+			menu.current_item = 0
+			menu.menu_loop = False
 			
     # process main menu events
 	def setKeySelectionMain(self, menu, key):
@@ -177,6 +183,9 @@ class GamePlay(object):
 			elif text == 'Return to main menu':
 				menu.menu_loop = False
 				self.main_loop = False
+			elif text == 'Credits':
+				self.menu_tree['credits'].menu_loop = True
+				self.menuLoop(self.menu_tree['credits'])
 		
 		# resume game logic
 		if key == pygame.K_ESCAPE and not menu.start_menu:
