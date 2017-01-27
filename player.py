@@ -176,6 +176,14 @@ class Player(pygame.sprite.Sprite):
 				self.score += globvar.POINTS_PER_STAR
 				self.level.starsSet.stars.remove(star)
 				gameMusic.playSound('collect')
+
+	def checkCollisionsWithLifeBottles(self, gameMusic):
+		if self.level.lifeSet is not None:
+			for lifeBottle in self.level.lifeSet.lifeBottles:
+				if self.rect.colliderect(lifeBottle.rect):
+					self.lives += 1
+					self.level.lifeSet.lifeBottles.remove(lifeBottle)
+					gameMusic.playSound('collect')
 				
 	def resetPosition(self):
 		self.rect.x = self.level.start_x

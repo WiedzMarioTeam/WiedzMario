@@ -1,4 +1,4 @@
-import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, levelExitCastle, nextLevelEntrance, utilsSet, cameraModule, menuItem, volMenuItem, gameMusic, gameMenu, sys
+import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, lifeSet, Level, time, levelExit, levelExitCastle, nextLevelEntrance, utilsSet, cameraModule, menuItem, volMenuItem, gameMusic, gameMenu, sys
 
 from pygame.locals import *
 
@@ -479,6 +479,7 @@ class GamePlay(object):
 		level_2 = Level.Level(5900, 1000, 0, 800)
 		level_2.platformsSet = platformsSets.PlatformSet2(self.character)
 		level_2.starsSet = starsSets.StarsSet2(self.character)
+		level_2.lifeSet = lifeSet.LifeSet2(self.character)
 		level_2.enemiesSet = enemiesSets.EnemiesSet2(self.character, level_2)
 		level_2.levelExit = levelExit.LevelExit(5585, 887)
 		level_2.levelExitCastle = levelExitCastle.LevelExitCastle(5400, 578)
@@ -533,6 +534,8 @@ class GamePlay(object):
 
 			# Sprawdzamy, czy zebrano jakas gwiazdke		
 			self.character.checkCollisionsWithStars(self.game_music)
+
+			self.character.checkCollisionsWithLifeBottles(self.game_music)
 			
 			#Sprawdzamy, czy gracz dotarl do konca poziomu
 			for ex in self.currentLevel.levelExit.exit:
@@ -591,9 +594,7 @@ class GamePlay(object):
 				starCurrImgNo = starCurrImgNo % len(self.starImages)
 				for e in self.currentLevel.starsSet.stars:
 					e.image = self.starImages[starCurrImgNo]
-					
-			
-			
+
 			if self.character.rect.left + self.character.rect.width/2 > globvar.SCREEN_WIDTH/2 and self.character.rect.left + self.character.rect.width/2 < self.currentLevel.width - globvar.SCREEN_WIDTH/2:
 				bg_x =  self.character.rect.left + self.character.rect.width/2 - globvar.SCREEN_WIDTH/2
 				bg_x = bg_x %globvar.BACKGROUND_IMAGE_WIDTH
@@ -622,6 +623,9 @@ class GamePlay(object):
 				self.screen.blit(e.image, self.camera.apply(e))
 			for e in self.currentLevel.enemiesSet.enemies:
 				self.screen.blit(e.image, self.camera.apply(e))
+			if self.currentLevel.lifeSet is not None:
+				for e in self.currentLevel.lifeSet.lifeBottles:
+					self.screen.blit(e.image, self.camera.apply(e))
 
 			self.screen.blit(self.character.image, self.camera.apply(self.character))
 	 

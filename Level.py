@@ -10,6 +10,7 @@ class Level(object):
 		self.levelExit = None
 		self.levelExitCastle = None
 		self.nextLevelEntrance = None
+		self.lifeSet = None
 		self.width = width
 		self.height = height
 		self.start_x = player_x
@@ -20,6 +21,8 @@ class Level(object):
 		self.platformsSet.update()
 		self.enemiesSet.update()
 		self.levelExit.update()
+		if self.lifeSet is not None:
+			self.lifeSet.update()
 		if self.levelExitCastle is not None:
 			self.levelExitCastle.update()
 		if self.nextLevelEntrance is not None:
@@ -35,3 +38,4 @@ class Level(object):
 		self.levelExit.draw(screen)
 		self.levelExitCastle.draw(screen)
 		self.nextLevelEntrance.draw(screen)
+		self.lifeSet.draw(screen)
