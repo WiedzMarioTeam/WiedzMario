@@ -583,7 +583,8 @@ class GamePlay(object):
 			# in case of end-game
 			if self.main_loop == False:
 				self.game_music.turnOffSound('gameTheme')
-				self.game_music.playSound('menu')
+				if self.currentLevelNumber == len(self.levels):
+					self.game_music.playSound('menu')
 				break
 			
 			#Obracanie gwiazdek
