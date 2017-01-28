@@ -570,7 +570,7 @@ class GamePlay(object):
 			if self.character.rect.left < 0:
 				self.character.rect.left = 0
 			if self.character.rect.bottom > self.currentLevel.height:
-				# self.game_music.playSound('player_death')
+				self.game_music.playSound('player_death')
 				self.character.lifeLost()
 				
 			#Jesli zostalo 0 zyc, to funkcja informuje o koncu gry			
