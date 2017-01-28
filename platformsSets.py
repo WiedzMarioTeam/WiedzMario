@@ -70,10 +70,9 @@ class PlatformSet2(object):
 
 
         # add the platforms
-		for platform in platforms:
-			surface = envsurface.EnvSurface(platform[0], platform[1], platform[2], platform[3], platform[4])
-			surface.player = self.player
-			self.platforms.add(surface)
+		for surface in platforms:
+			platform = platformModule.Platform(surface[0], surface[1], surface[2], surface[3], surface[4])
+			self.platforms.add(platform)
 
 	# update the level
     def update(self):
