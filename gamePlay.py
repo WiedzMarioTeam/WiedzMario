@@ -105,7 +105,10 @@ class GamePlay(object):
 						self.fun_dict[menu.menu_name](menu, event.key)
 
 			if menu.menu_loop:
-				self.screen.fill(globvar.MENU_FILL)
+				# self.screen.fill(globvar.MENU_FILL)
+				sheet = pygame.image.load('Images/menu.png').convert_alpha();
+				endImage = pygame.transform.scale(sheet, (globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT))
+				self.screen.blit(endImage, (0,0))
 				
 				if menu.menu_label is not None:
 					self.screen.blit(menu.menu_label.label, menu.menu_label.position)
