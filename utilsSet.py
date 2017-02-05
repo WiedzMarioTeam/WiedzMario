@@ -14,10 +14,11 @@ class Utils(object):
 		self.screen.blit(text, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT - text_height)/2))
 		
 	def printLevelNumber(self, number):
-		self.screen.fill(globvar.COLOR_BLACK)
-		self.printTextCenter("LEVEL " + str(number))
+		sheet = pygame.image.load('Images/koniec-poziomu-' + str(number-1) + '.png').convert_alpha();
+		endImage = pygame.transform.scale(sheet, (globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT))
+		self.screen.blit(endImage, (0,0))
 		pygame.display.update()
-		pygame.time.delay(1500)
+		pygame.time.delay(2500)
 		
 	def gameOver(self, currentLevel, screen, character):
 		font = pygame.font.SysFont("comicsansms",40)
@@ -28,3 +29,9 @@ class Utils(object):
 		pygame.display.update()
 		pygame.time.delay(3000)
 		#pygame.quit()
+
+def rot_center(image, rect, angle):
+    """rotate an image while keeping its center"""
+    rot_image = pygame.transform.rotate(image, angle)
+    rot_rect = rot_image.get_rect(center=rect.center)
+    return rot_image,rot_rect

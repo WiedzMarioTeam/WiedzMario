@@ -17,7 +17,7 @@ class GameMenu(object):
 		self.tmp_jump = None
 		self.menu_label_saved = None
 		self.menu_label_save = None
-	
+
 	# initialization of text menu object
 	def initTextMenu(self, scr_width, scr_height, is_sound, font, font_size, font_color, menu_items, start_menu, menu_name, menu_label = None, left = None, right = None, jump = None):
 		#create the game screen
@@ -62,7 +62,7 @@ class GameMenu(object):
 		self.menu_label_save.set_position(pos_x, pos_y)
 		
 		self.current_item = None
-		
+
 	
 	# initialization of sound menu object
 	def initVolMenu(self, scr_width, scr_height, game_music, menu_name, menu_label):

@@ -14,7 +14,6 @@ class GameMusic(object):
 
 	def isSound(self):
 		return self.is_sound
-		
 
 	def setSound(self, is_sound):
 		self.is_sound = is_sound
@@ -25,3 +24,15 @@ class GameMusic(object):
 			self.sounds[key].set_volume((self.sound_level / 10.0) + 0.1)
 			self.sounds[key].play(0)
 
+	def setVolume(self,key):
+		self.sounds[key].set_volume((self.sound_level / 10.0) + 0.1)
+
+
+	def turnOffSound(self,key):
+		self.sounds[key].stop()
+
+	def isSoundPlay(self,key):
+		if pygame.mixer.get_busy():
+			return 0
+		else:
+			return 1

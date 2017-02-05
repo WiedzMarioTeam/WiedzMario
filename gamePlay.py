@@ -1,4 +1,6 @@
-import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, Level, time, levelExit, utilsSet, cameraModule, menuItem, volMenuItem, gameMusic, gameMenu, sys
+import pygame, player, envsurface, platformsSets, globvar, baseEnemy, enemiesSets, starsSets, lifeSet, Level, time, levelExit, levelExitCastle, nextLevelEntrance, utilsSet, cameraModule, menuItem, volMenuItem, gameMusic, gameMenu, sys
+
+from pygame.locals import *
 
 class GamePlay(object):
 	# set basic game settings
@@ -9,10 +11,16 @@ class GamePlay(object):
 		self.player_positions = {'1': (100, 1300), '2': (100, 650)}
 		# object handling class music
 		self.game_music = gameMusic.GameMusic(2, {'jump': 'sfx/jump.wav',
-                                                  'enemy_death': 'sfx/death1.wav',
-                                                  'player_death': 'sfx/death2.wav',
+                                                  'first_enemy_death': 'sfx/death1.wav',
+												  'second_enemy_death': 'sfx/death2.wav',
+                                                  'player_death': 'sfx/death3.wav',
                                                   'gameover': 'sfx/gameover.wav',
-                                                  'win': 'sfx/win.wav'})
+                                                  'win': 'sfx/win.wav',
+												  'endLvl' : 'sfx/level_complete.wav',
+												  'endGame': 'sfx/game_complete.wav',
+												  'gameTheme' : 'sfx/game_theme.ogg',
+												  'menu': 'sfx/menu.wav',
+												  'collect': 'sfx/collect.wav'})
 		# control keys
 		self.jump = pygame.K_SPACE
 		self.left = pygame.K_LEFT
@@ -32,7 +40,6 @@ class GamePlay(object):
 		self.setFunDict()
 		self.menuLoop(self.menu_tree['main'])
 
-	
 	# create game menu
 	def populateMenuTree(self):
 		self.menu_tree['main'] = gameMenu.GameMenu()
@@ -41,14 +48,15 @@ class GamePlay(object):
 		self.menu_tree['levels'] = gameMenu.GameMenu()
 		self.menu_tree['controls'] = gameMenu.GameMenu()
 		self.menu_tree['sound'] = gameMenu.GameMenu()
+		self.menu_tree['credits'] = gameMenu.GameMenu()
 		
-		self.menu_tree['main'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Start', 'Choose level', 'Settings', 'Quit'], True, 'main')
-		self.menu_tree['main_game'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Resume', 'Settings', 'Return to main menu', 'Quit'], False, 'main_game')
+		self.menu_tree['main'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Start', 'Choose level', 'Settings','Credits' , 'Quit'], True, 'main')
+		self.menu_tree['main_game'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Resume', 'Settings', 'Return to main menu','Credits' ,'Quit'], False, 'main_game')
 		self.menu_tree['settings'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Toggle sound', 'Sound volume', 'Controls'], True, 'settings', self.getMenuLabel('Settings'))
 		self.menu_tree['levels'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, self.getLevels(), True, 'levels', self.getMenuLabel('Choose level'))
 		self.menu_tree['controls'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Left' + ' [ ' + pygame.key.name(self.left) + ' ]' , 'Right' + ' [ ' + pygame.key.name(self.right) + ' ]', 'Jump' + ' [ ' + pygame.key.name(self.jump) + ' ]'], True, 'controls', self.getMenuLabel('Customize controls'), self.left, self.right, self.jump)
 		self.menu_tree['sound'].initVolMenu(self.scr_width, self.scr_height, self.game_music, 'sound', self.getMenuLabel('Customize sound volume'))
-		
+		self.menu_tree['credits'].initTextMenu(self.scr_width, self.scr_height, self.isSound(), None, 40, globvar.MENU_DEFAULT, ['Kacper Branka', 'Lukasz Kozlowski', 'Adrian Pankiewicz', 'Jadwiga Rusnarczyk', 'Magdalena Skalicz', 'Paulina Syposz', 'Mateusz Wojtanowicz'], True, 'credits', self.getMenuLabel('Credits'))
 	
 	# set function dictionary
 	def setFunDict(self):
@@ -58,6 +66,7 @@ class GamePlay(object):
 		self.fun_dict['levels'] = self.setKeySelectionLevels
 		self.fun_dict['controls'] = self.setKeySelectionControls
 		self.fun_dict['sound'] = self.setKeySelectionSound
+		self.fun_dict['credits'] = self.setKeySelectionCredits
 	
 	# create menu label
 	def getMenuLabel(self, text):
@@ -83,7 +92,9 @@ class GamePlay(object):
 	def menuLoop(self, menu):
 		# a little trick to highlight the first position when menu is entered
 		self.fun_dict[menu.menu_name](menu, None)
-		
+		self.game_music.turnOffSound('gameTheme')
+		if self.game_music.isSoundPlay('menu') == 1:
+			self.game_music.playSound('menu')
 		while menu.menu_loop:
 			self.clock.tick(globvar.TICK)
             
@@ -94,7 +105,10 @@ class GamePlay(object):
 						self.fun_dict[menu.menu_name](menu, event.key)
 
 			if menu.menu_loop:
-				self.screen.fill(globvar.MENU_FILL)
+				# self.screen.fill(globvar.MENU_FILL)
+				sheet = pygame.image.load('Images/menu.png').convert_alpha();
+				endImage = pygame.transform.scale(sheet, (globvar.SCREEN_WIDTH, globvar.SCREEN_HEIGHT))
+				self.screen.blit(endImage, (0,0))
 				
 				if menu.menu_label is not None:
 					self.screen.blit(menu.menu_label.label, menu.menu_label.position)
@@ -116,8 +130,11 @@ class GamePlay(object):
 						self.screen.blit(item.label, item.position)
  
 				pygame.display.flip()
-				
-	
+
+	def setKeySelectionCredits(self, menu, key):
+		if key == pygame.K_ESCAPE:
+			menu.current_item = 0
+			menu.menu_loop = False
 			
     # process main menu events
 	def setKeySelectionMain(self, menu, key):
@@ -152,7 +169,7 @@ class GamePlay(object):
 			text = menu.items[menu.current_item].text
 			if text == 'Start':
 				self.main_loop = True
-				self.initGame(pygame.font.SysFont("comicsansms", 40), player.Player(self.player_positions['1'], globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), 1)
+				self.initGame(pygame.font.SysFont("comicsansms", 40), player.Player(), pygame.time.Clock(), 1)
 			elif text == 'Settings':
 				self.menu_tree['settings'].menu_loop = True
 				self.menuLoop(self.menu_tree['settings'])
@@ -162,14 +179,21 @@ class GamePlay(object):
 			elif text == 'Quit':
 				sys.exit()
 			elif text == 'Resume':
+				self.game_music.turnOffSound('menu')
+				self.game_music.playSound('gameTheme')
 				menu.current_item = 0
 				menu.menu_loop = False
 			elif text == 'Return to main menu':
 				menu.menu_loop = False
 				self.main_loop = False
+			elif text == 'Credits':
+				self.menu_tree['credits'].menu_loop = True
+				self.menuLoop(self.menu_tree['credits'])
 		
 		# resume game logic
 		if key == pygame.K_ESCAPE and not menu.start_menu:
+			self.game_music.turnOffSound('menu')
+			self.game_music.playSound('gameTheme')
 			menu.current_item = 0
 			menu.menu_loop = False
 			
@@ -261,7 +285,7 @@ class GamePlay(object):
 			menu.menu_loop = False
 			self.main_loop = True
 			menu.current_item = 0
-			self.initGame(pygame.font.SysFont("comicsansms", 40), player.Player(self.player_positions[text], globvar.PLAYER_SIZE, globvar.PLAYER_FILL), pygame.time.Clock(), int(text))
+			self.initGame(pygame.font.SysFont("comicsansms", 40), player.Player(), pygame.time.Clock(), int(text))
 			# a little trick to reset main menu after gameplay 
 			self.setKeySelectionMain(self.menu_tree['main'], pygame.K_UP) 
 		# escape key allows the user to go level up in menu
@@ -415,6 +439,8 @@ class GamePlay(object):
 	
 	# initialization of the actual gameplay
 	def initGame(self, font, character, clock, current_level_no):
+		self.game_music.turnOffSound('menu')
+
 		self.font = font
 		# set the player character
 		self.character = character
@@ -424,37 +450,54 @@ class GamePlay(object):
 		self.currentLevelNumber = current_level_no
 		self.levels = None
 		# tworzymy obiekty dla kolejnych poziomow
-		level_1 = Level.Level(2000, 1600, 100, 1300)
-		level_1.platformsSet = platformsSets.PlatformSet1(self.character)
-		level_1.starsSet = starsSets.StarsSet1(self.character)	
-		level_1.enemiesSet = enemiesSets.EnemiesSet1(self.character, level_1)
-		level_1.levelExit = levelExit.LevelExit(950,598)
-		
-		level_2 = Level.Level(3000, 1000, 100, 650)
-		level_2.platformsSet = platformsSets.PlatformSet2(self.character)
-		level_2.starsSet = starsSets.StarsSet2(self.character)	
-		level_2.enemiesSet = enemiesSets.EnemiesSet2(self.character, level_2)
-		level_2.levelExit = levelExit.LevelExit(950,598)	
-		
+		level_1 = self.setFirstLevel()
+		level_2 = self.setSecondLevel()
 		self.levels = [level_1, level_2]
 		
 		self.currentLevel = self.levels[current_level_no - 1]	
 		self.character.level = self.levels[current_level_no - 1]	
-		
+		self.character.resetPosition()
 		self.sprites = pygame.sprite.Group()
 		self.sprites.add(self.character)
 		
+		self.starImages = []
+		starsPNG = pygame.image.load('sprite/stars.png').convert_alpha()
+		for x in range(8):
+			self.starImages.append( pygame.transform.scale(starsPNG.subsurface(70*x,0,70,70), (40,40)))
+		
 		self.camera = cameraModule.Camera(cameraModule.complex_camera, self.currentLevel.width, self.currentLevel.height)
 		self.currentLevel.timeStart = time.time()
-
 		self.gameLoop()
-		
-	
+
+	def setFirstLevel(self):
+		level_1 = Level.Level(4500, 1000, 0, 800)
+		level_1.platformsSet = platformsSets.PlatformSet1(self.character)
+		level_1.starsSet = starsSets.StarsSet1(self.character)
+		level_1.enemiesSet = enemiesSets.EnemiesSet1(self.character, level_1)
+		level_1.levelExit = levelExit.LevelExit(4185, 887)
+		level_1.nextLevelEntrance = nextLevelEntrance.NextLevelEntrance(3600, 567)
+		return level_1
+
+	def setSecondLevel(self):
+		level_2 = Level.Level(5900, 1000, 0, 800)
+		level_2.platformsSet = platformsSets.PlatformSet2(self.character)
+		level_2.starsSet = starsSets.StarsSet2(self.character)
+		level_2.lifeSet = lifeSet.LifeSet2(self.character)
+		level_2.enemiesSet = enemiesSets.EnemiesSet2(self.character, level_2)
+		level_2.levelExit = levelExit.LevelExit(5585, 887)
+		level_2.levelExitCastle = levelExitCastle.LevelExitCastle(5400, 578)
+		return level_2
+
 	# gameplay loop
 	def gameLoop(self):	
 		# the event loop
+		flipStarsCounter = 0
+		starCurrImgNo = 6
+		backgrounSheet = pygame.image.load('Images/background.png').convert_alpha();
+		self.game_music.playSound('gameTheme')
+		bg_x = 0
 		while self.main_loop:
-		
+
 			#przetwarzamy ruchy przeciwnikow
 			for enemy in self.currentLevel.enemiesSet.enemies:
 				enemy.moveEnemy()
@@ -493,7 +536,9 @@ class GamePlay(object):
 			self.character.checkCollisionsWithEnemies(self.game_music)
 
 			# Sprawdzamy, czy zebrano jakas gwiazdke		
-			self.character.checkCollisionsWithStars()
+			self.character.checkCollisionsWithStars(self.game_music)
+
+			self.character.checkCollisionsWithLifeBottles(self.game_music)
 			
 			#Sprawdzamy, czy gracz dotarl do konca poziomu
 			for ex in self.currentLevel.levelExit.exit:
@@ -504,10 +549,14 @@ class GamePlay(object):
 						scoreText=self.font.render("Score:"+str(self.character.score), 1,(255,255,0))
 						self.screen.blit(scoreText, ((globvar.SCREEN_WIDTH - text_width)/2, (globvar.SCREEN_HEIGHT + text_height + 20)/2))	
 						pygame.display.update()
-						self.playSound('win')
-						pygame.time.delay(3000)
+						self.game_music.turnOffSound('gameTheme')
+						self.playSound('endGame')
+						pygame.time.delay(6000)
 						self.main_loop = False
 					else:
+						self.game_music.turnOffSound('gameTheme')
+						self.playSound('endLvl')
+						pygame.time.delay(5000)
 						self.currentLevel = self.levels[self.currentLevelNumber]
 						self.currentLevelNumber += 1
 						self.character.level = self.currentLevel
@@ -515,6 +564,7 @@ class GamePlay(object):
 						self.camera = cameraModule.Camera(cameraModule.complex_camera, self.currentLevel.width, self.currentLevel.height)
 						self.utils.printLevelNumber(self.currentLevelNumber)
 						self.currentLevel.timeStart = time.time()
+					self.game_music.playSound('gameTheme')
 			
 			# don't let the player leave the world
 			if self.character.rect.right > self.currentLevel.width:
@@ -529,30 +579,60 @@ class GamePlay(object):
 			#Jesli zostalo 0 zyc, to funkcja informuje o koncu gry			
 			if self.character.lives == 0:
 				self.playSound('gameover')
+				self.game_music.turnOffSound('gameTheme')
 				self.utils.gameOver(self.currentLevel, self.screen, self.character)
 				self.main_loop = False
 			
 			# in case of end-game
 			if self.main_loop == False:
+				self.game_music.turnOffSound('gameTheme')
+				if self.currentLevelNumber == len(self.levels):
+					self.game_music.playSound('menu')
+					self.game_music.turnOffSound('gameover')
 				break
-				
-			self.screen.fill(globvar.BACKGROUND_FILL)
+			
+			#Obracanie gwiazdek
+			flipStarsCounter += 1
+			flipStarsCounter = flipStarsCounter % (globvar.TICK/6)
+			if flipStarsCounter ==0:
+				starCurrImgNo += 1
+				starCurrImgNo = starCurrImgNo % len(self.starImages)
+				for e in self.currentLevel.starsSet.stars:
+					e.image = self.starImages[starCurrImgNo]
 
+			if self.character.rect.left + self.character.rect.width/2 > globvar.SCREEN_WIDTH/2 and self.character.rect.left + self.character.rect.width/2 < self.currentLevel.width - globvar.SCREEN_WIDTH/2:
+				bg_x =  self.character.rect.left + self.character.rect.width/2 - globvar.SCREEN_WIDTH/2
+				bg_x = bg_x %globvar.BACKGROUND_IMAGE_WIDTH
+			else:
+				bg_x = 0
+			
+			sceenBackground = backgrounSheet.copy()
+			sceenBackground.scroll(-bg_x, 0)
+			self.screen.blit(sceenBackground, (0, 0))
+			if globvar.BACKGROUND_IMAGE_WIDTH - bg_x < globvar.SCREEN_WIDTH:
+				self.screen.blit(backgrounSheet, (globvar.BACKGROUND_IMAGE_WIDTH - bg_x, 0))
+			
+			characterOldX = self.character.rect.left
 			
 			for e in self.currentLevel.platformsSet.platforms:
 				self.screen.blit(e.image, self.camera.apply(e))
+			for e in self.currentLevel.levelExit.exit:
+				self.screen.blit(e.image, self.camera.apply(e))
+			if self.currentLevel.levelExitCastle is not None:
+				for e in self.currentLevel.levelExitCastle.castle:
+					self.screen.blit(e.image, self.camera.apply(e))
+			if self.currentLevel.nextLevelEntrance is not None:
+				for e in self.currentLevel.nextLevelEntrance.doors:
+					self.screen.blit(e.image, self.camera.apply(e))
 			for e in self.currentLevel.starsSet.stars:
 				self.screen.blit(e.image, self.camera.apply(e))
 			for e in self.currentLevel.enemiesSet.enemies:
 				self.screen.blit(e.image, self.camera.apply(e))
-			for e in self.currentLevel.levelExit.exit:
-				self.screen.blit(e.image, self.camera.apply(e))
+			if self.currentLevel.lifeSet is not None:
+				for e in self.currentLevel.lifeSet.lifeBottles:
+					self.screen.blit(e.image, self.camera.apply(e))
 
 			self.screen.blit(self.character.image, self.camera.apply(self.character))
-			
-			# draw the scene
-			#currentLevel.draw(screen)
-			#sprites.draw(screen)
 	 
 			# display the defined number of FPS
 			self.clock.tick(globvar.TICK)
@@ -584,7 +664,11 @@ class GamePlay(object):
 	def toggleSound(self, menu):
 		self.setSound(not self.isSound())
 		menu.items[globvar.SOUND].set_active(self.isSound())
-		menu.items[globvar.TOGGLE].set_text('Toggle sound' + ' ' + ('(Off)' if self.isSound() else '(On)'))	
+		menu.items[globvar.TOGGLE].set_text('Toggle sound' + ' ' + ('(Off)' if self.isSound() else '(On)'))
+		if self.isSound():
+			self.game_music.playSound('menu')
+		else:
+			self.game_music.turnOffSound('menu')
 
 			
 	# play a given sound
@@ -667,6 +751,7 @@ class GamePlay(object):
 		self.game_music.sound_level = menu.tmp_sound
 		menu.save_sound = False
 		menu.is_saved = True
+		self.game_music.setVolume('menu')
 		
 	# reset sound menu
 	def resetSoundMenu(self, menu):
